@@ -1,14 +1,41 @@
 use bracket_terminal::prelude::*;
 use hecs::*;
 
+pub const HEIGHT: u32  = 80;
+pub const WIDTH: u32 = 120;
+
 struct State {
     world: World, // Holds all of our entities
+    tiles: Vec<Tile>, // Holds the tiles to the world
+}
+// tiles = h * w so by that we get the area to access each one you must go the width times how many y
+
+fn xy_to_idx(x: u32, y: u32) -> u32 {
+    x * [y * WIDTH]
+}
+
+#[cfg(test)]
+mod tests {
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+
+    #[test]
+    fn test_xy_to_idx() {
+        assert_eq!(xy_to_idx(1, 2), 240);
+    }
+}
+
+struct Tile {
+
 }
 
 impl GameState for State {
     fn tick(&mut self, ctx: &mut BTerm) {
         ctx.cls();
         try_move_player(ctx, &self.world);
+        
+
+        //Draw order will be map then entities
         render_entities(ctx, &self.world);
     }
 }
@@ -35,6 +62,7 @@ fn try_move_player(ctx: &mut BTerm, world: &World) {
     }
 }
 
+/// Renders all entities that have a Position and Sprite component
 fn render_entities(ctx: &mut BTerm, world: &World) {
     for (_, (pos, sprite)) in world.query::<(&Position, &Sprite)>().iter() {
         ctx.set(pos.x, pos.y, sprite.fg, sprite.bg, sprite.glyph);
