@@ -1,32 +1,48 @@
 use bracket_terminal::prelude::*;
 use hecs::*;
 
-pub const HEIGHT: u32  = 80;
-pub const WIDTH: u32 = 120;
+pub const HEIGHT: usize = 80;
+pub const WIDTH: usize = 120;
 
 struct State {
     world: World, // Holds all of our entities
     tiles: Vec<Tile>, // Holds the tiles to the world
 }
-// tiles = h * w so by that we get the area to access each one you must go the width times how many y
 
-fn xy_to_idx(x: u32, y: u32) -> u32 {
-    x * [y * WIDTH]
+// Converts 2d coords to 1d index
+fn xy_to_idx(x: usize, y: usize) -> usize {
+    x + (y * WIDTH)
 }
 
-#[cfg(test)]
-mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    use super::*;
-
-    #[test]
-    fn test_xy_to_idx() {
-        assert_eq!(xy_to_idx(1, 2), 240);
-    }
+// Converts 1d index to 2d coords
+fn idx_to_xy(idx: usize) -> (usize, usize) {
+    (idx / WIDTH, idx % WIDTH)
 }
 
+#[derive(Copy, Clone)]
 struct Tile {
+    tile_type: TileType,
+    is_blocking: bool,
+}
 
+
+#[derive(Copy, Clone)]
+enum TileType {
+    Floor,
+    Wall,
+}
+
+fn generate_overworld_map() -> Vec<Tile> {
+    let mut map = vec![Tile{tile_type: TileType::Wall, is_blocking: true}; WIDTH * HEIGHT];
+    
+    for x in 1..20 {
+        for y in 1..15 {
+            map[xy_to_idx(x, y)] = Tile {tile_type: TileType::Floor, is_blocking: false};
+        }
+    }
+
+
+    map
 }
 
 impl GameState for State {
@@ -36,6 +52,7 @@ impl GameState for State {
         
 
         //Draw order will be map then entities
+        render_map(ctx, &self.tiles);
         render_entities(ctx, &self.world);
     }
 }
@@ -66,6 +83,22 @@ fn try_move_player(ctx: &mut BTerm, world: &World) {
 fn render_entities(ctx: &mut BTerm, world: &World) {
     for (_, (pos, sprite)) in world.query::<(&Position, &Sprite)>().iter() {
         ctx.set(pos.x, pos.y, sprite.fg, sprite.bg, sprite.glyph);
+    }
+}
+fn render_map(ctx: &mut BTerm, map: &[Tile]) {
+    let mut x = 0;
+    let mut y = 0;
+    for tile in map.iter() {
+        match tile.tile_type {
+            TileType::Wall => ctx.set(x, y, RGB::named(ROSYBROWN), RGB::named(BROWN1), to_cp437('#')),
+            TileType::Floor => ctx.set(x, y, RGB::named(WHITE), RGB::named(BLACK), to_cp437('.')),
+        } 
+
+        x += 1;
+        if x == WIDTH {
+            x = 0;
+            y += 1;
+        }
     }
 }
 
@@ -135,7 +168,8 @@ fn main() -> BError {
         },
     ));
 
-    let gs: State = State { world };
+    let tiles = generate_overworld_map();
+    let gs: State = State { world, tiles };
 
     main_loop(context, gs)
 }
