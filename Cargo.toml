@@ -1,5 +1,5 @@
 [package]
-name = "subterranum_game"
+name = "terra_incognita"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 hecs = "0.9.1"
 bracket-terminal = "0.8.2"
+bracket-pathfinding = "0.8.7"

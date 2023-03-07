@@ -1,13 +1,31 @@
-use bracket_terminal::prelude::{to_cp437, BLACK, BROWN1, BROWN4, RGB, WHITESMOKE};
-
 /// Map.rs is the map generation code and data structures to hold information about the map
-use crate::{CharSprite, Position};
+use crate::{tiles::*, CharSprite, Position, Player};
+use bracket_terminal::prelude::{BTerm, Point};
+use crate::{World, ViewShed};
 
 pub const MAP_WIDTH: usize = 120;
 pub const MAP_HEIGHT: usize = 70;
 
 pub struct Map {
-    pub overworld: Vec<Tile>,
+    pub tiles: Vec<Tile>,
+}
+
+// Renders the world from the player perspective
+pub fn render_map(ctx: &mut BTerm, map: &[Tile], world: &World) {
+    for (_, (viewshed, _)) in world.query::<(&ViewShed, &Player)>().iter() {
+        let mut x = 0;
+        let mut y = 0;
+        for tile in map.iter() {
+            if viewshed.visible_tiles.contains(&Point::new(x, y)) {
+                ctx.set(x, y, tile.sprite.fg, tile.sprite.bg, tile.sprite.glyph);
+            }
+            x += 1;
+            if x >= MAP_WIDTH {
+                x = 0;
+                y += 1;
+            }
+        }
+    }
 }
 
 // Converts 2d coords to 1d index
@@ -15,7 +33,7 @@ pub fn xy_to_idx(x: usize, y: usize) -> usize {
     x + (y * MAP_WIDTH)
 }
 
-// Converts a 2d position to a 1d index
+// Converts 2d position to a 1d index
 #[allow(dead_code)]
 pub fn pos_to_idx(pos: Position) -> usize {
     pos.x + (pos.y * MAP_WIDTH)
@@ -23,7 +41,7 @@ pub fn pos_to_idx(pos: Position) -> usize {
 
 // Converts 1d index to 2d coords
 #[allow(dead_code)]
-pub fn idx_to_xy(idx: usize) -> Position {
+pub fn idx_to_pos(idx: usize) -> Position {
     Position {
         x: idx / MAP_WIDTH,
         y: idx % MAP_WIDTH,
@@ -32,26 +50,31 @@ pub fn idx_to_xy(idx: usize) -> Position {
 
 #[derive(Copy, Clone)]
 pub struct Tile {
-    pub is_blocking: bool,
     pub sprite: CharSprite,
+    pub is_blocking: bool,
+    pub is_transparent: bool,
 }
 
 pub fn generate_overworld_map() -> Map {
+    // create the map for the overworld
     let mut map = Map {
-        overworld: vec![
+        tiles: vec![
             Tile {
                 is_blocking: true,
-                sprite: wall()
+                sprite: wall(),
+                is_transparent: false,
             };
             MAP_HEIGHT * MAP_WIDTH
         ],
     };
 
+    // make a room
     for x in 1..20 {
         for y in 1..15 {
-            if let Some(tile) = map.overworld.get_mut(xy_to_idx(x, y)) {
+            if let Some(tile) = map.tiles.get_mut(xy_to_idx(x, y)) {
                 *tile = Tile {
                     is_blocking: false,
+                    is_transparent: true,
                     sprite: floor(),
                 };
             }
@@ -61,28 +84,32 @@ pub fn generate_overworld_map() -> Map {
     map
 }
 
-// fn flood_fill(map: Vec<Tile>, start_pos: Position) -> Vec<Position> {
-//     let mut stack = vec![start_pos];
-//     let mut visited = vec![false; map.len()];
-//     visited[pos_to_idx(start_pos)] = true;
-//
-//     while let Some(pos) = stack.pop() {
-//         for neighbor in self.get_neighbors(pos) {
-//             let idx = self.cell_idx(neighbor);
-//             if !visited[idx] && self.cells[idx].is_wall {
-//                 visited[idx] = true;
-//                 stack.push(neighbor);
-//             }
-//         }
-//     }
-//
-//     visited.iter()
-//         .enumerate()
-//         .filter(|(_, &v)| v)
-//         .map(|(i, _)| self.cells[i].pos)
-//         .collect()
-// }
+// Finds all tiles that are connected so the others may be filtered
+#[allow(dead_code)]
+fn flood_fill(map: Vec<Tile>, start_pos: Position) -> Vec<Position> {
+    let mut stack = vec![start_pos];
+    let mut visited = vec![false; map.len()];
+    visited[pos_to_idx(start_pos)] = true;
 
+    while let Some(pos) = stack.pop() {
+        for neighbor in get_neighbors(pos) {
+            let idx = pos_to_idx(neighbor);
+            if !visited[idx] && map[idx].is_blocking {
+                visited[idx] = true;
+                stack.push(neighbor);
+            }
+        }
+    }
+
+    visited
+        .iter()
+        .enumerate()
+        .filter(|(_, &v)| v)
+        .map(|(i, _)| idx_to_pos(i))
+        .collect()
+}
+
+// gets the 8 surrounding neighbors of a grid based position
 fn get_neighbors(from: Position) -> Vec<Position> {
     let mut neighbors = vec![];
 
@@ -97,22 +124,6 @@ fn get_neighbors(from: Position) -> Vec<Position> {
     }
 
     neighbors
-}
-
-fn wall() -> CharSprite {
-    CharSprite {
-        glyph: to_cp437('#'),
-        fg: RGB::named(BROWN1),
-        bg: RGB::named(BROWN4),
-    }
-}
-
-fn floor() -> CharSprite {
-    CharSprite {
-        glyph: to_cp437('.'),
-        fg: RGB::named(WHITESMOKE),
-        bg: RGB::named(BLACK),
-    }
 }
 
 #[cfg(test)]
