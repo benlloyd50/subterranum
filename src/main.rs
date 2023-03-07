@@ -2,12 +2,12 @@ use bracket_terminal::prelude::*;
 use hecs::*;
 
 mod map;
-use map::{generate_overworld_map, Map, MAP_WIDTH, MAP_HEIGHT, render_map};
+use map::{generate_map, render_map, Map, MAP_HEIGHT, MAP_WIDTH};
 mod fov;
-use fov::{ViewShed, update_vision};
-mod tiles;
+use fov::{update_vision, ViewShed};
 mod actor;
-use actor::{try_move_player, render_entities, Position, CharSprite, Player};
+mod tiles;
+use actor::{render_entities, try_move_player, CharSprite, Player, Position};
 
 pub const HEIGHT: usize = 80;
 pub const WIDTH: usize = 120;
@@ -60,7 +60,7 @@ fn main() -> BError {
         },
     ));
 
-    let map = generate_overworld_map();
+    let map = generate_map();
     let gs: State = State { world, map };
 
     main_loop(context, gs)

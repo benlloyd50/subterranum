@@ -1,6 +1,6 @@
 use bracket_terminal::prelude::*;
 
-use crate::{BTerm, State, ViewShed, With, World, map::xy_to_idx};
+use crate::{map::xy_to_idx, BTerm, State, ViewShed, With, World};
 
 pub fn try_move_player(ctx: &mut BTerm, state: &State) {
     for (_, (pos, view)) in state
@@ -46,7 +46,7 @@ pub fn render_entities(ctx: &mut BTerm, world: &World) {
 // Tag Component that marks the player entity
 pub struct Player;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Position {
     pub x: usize,
     pub y: usize,
@@ -67,7 +67,6 @@ pub struct CharSprite {
 
 type Color = (u8, u8, u8);
 
-
 impl CharSprite {
     // Create a new sprite, bg defaults to black which is useful for items
     pub fn new(glyph: char, fg: Color, bg: Option<Color>) -> Self {
@@ -85,4 +84,3 @@ impl CharSprite {
         }
     }
 }
-

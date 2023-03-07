@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 hecs = "0.9.1"
 bracket-terminal = "0.8.2"
+bracket-noise = "0.8.7"
 bracket-pathfinding = "0.8.7"
