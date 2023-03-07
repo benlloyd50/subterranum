@@ -60,9 +60,9 @@ impl Position {
 
 #[derive(Clone, Copy)]
 pub struct CharSprite {
-    glyph: FontCharType,
-    fg: RGB,
-    bg: RGB,
+    pub glyph: FontCharType,
+    pub fg: RGB,
+    pub bg: RGB,
 }
 
 type Color = (u8, u8, u8);
