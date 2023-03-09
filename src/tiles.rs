@@ -1,26 +1,64 @@
 use crate::{map::WorldTile, CharSprite};
-use bracket_terminal::prelude::{to_cp437, BLACK, BROWN1, BROWN4, RGB, WHITESMOKE};
+use bracket_terminal::prelude::*;
 
-pub fn wall() -> WorldTile {
+pub fn wall_stone() -> WorldTile {
     WorldTile {
         is_transparent: false,
         is_blocking: true,
         sprite: CharSprite {
-            glyph: to_cp437('#'),
-            fg: RGB::named(BROWN1),
-            bg: RGB::named(BROWN4),
+            glyph: to_cp437('\''),
+            fg: RGB::named(LIGHTYELLOW),
+            bg: RGB::named(DARKORANGE1),
         },
     }
 }
 
-pub fn floor() -> WorldTile {
+pub fn deep_water() -> WorldTile {
+    WorldTile {
+        is_transparent: true,
+        is_blocking: true,
+        sprite: CharSprite {
+            glyph: to_cp437('~'),
+            fg: RGB::named(WHITE_SMOKE),
+            bg: RGB::named(ROYAL_BLUE),
+        },
+    }
+}
+
+pub fn floor_stone() -> WorldTile {
     WorldTile {
         is_transparent: true,
         is_blocking: false,
         sprite: CharSprite {
             glyph: to_cp437('.'),
             fg: RGB::named(WHITESMOKE),
-            bg: RGB::named(BLACK),
+            bg: RGB::named(LIGHTSLATEGRAY),
+        },
+    }
+}
+
+// SLATEBLUE coming soon...
+
+pub fn floor_grass() -> WorldTile {
+    WorldTile {
+        is_transparent: true,
+        is_blocking: false,
+        sprite: CharSprite {
+            glyph: to_cp437('.'),
+            fg: RGB::named(WHITESMOKE),
+            bg: RGB::named(FOREST_GREEN),
+        },
+    }
+}
+
+pub fn lush_brush() -> WorldTile {
+    WorldTile {
+        is_transparent: false,
+        is_blocking: false,
+        sprite: CharSprite {
+            glyph: to_cp437('½'),
+            fg: RGB::named(WHITESMOKE),
+            bg: RGB::named(LAWN_GREEN),
         },
     }
 }
