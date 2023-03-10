@@ -1,6 +1,9 @@
 use bracket_terminal::prelude::*;
 
-use crate::{map::{xy_to_idx, MAP_WIDTH, MAP_HEIGHT}, BTerm, State, ViewShed, With};
+use crate::{
+    map::{xy_to_idx, MAP_HEIGHT, MAP_WIDTH},
+    BTerm, State, ViewShed, With,
+};
 
 pub fn try_move_player(ctx: &mut BTerm, state: &State) {
     for (_, (pos, view)) in state
@@ -36,7 +39,7 @@ pub fn try_move_player(ctx: &mut BTerm, state: &State) {
     }
 }
 
-fn within_bounds(tile_pos : Position) -> bool {
+fn within_bounds(tile_pos: Position) -> bool {
     tile_pos.x < MAP_WIDTH && tile_pos.y < MAP_HEIGHT
 }
 

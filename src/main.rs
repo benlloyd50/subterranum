@@ -15,7 +15,7 @@ pub const WIDTH: usize = 120;
 pub struct State {
     world: World, // Holds all of our entities
     map: Map,     // Holds the tiles to the world
-    // player_e: Entity // The player's entity for convienent lookup
+                  // player_e: Entity // The player's entity for convienent lookup
 }
 
 impl GameState for State {
@@ -35,10 +35,10 @@ bracket_terminal::embedded_resource!(TILE_FONT, "../resources/Yayo.png");
 fn main() -> BError {
     //Setup terminal renderer
     bracket_terminal::link_resource!(TILE_FONT, "resources/Yayo.png");
-    let context = BTermBuilder::simple(WIDTH,HEIGHT)?
+    let context = BTermBuilder::simple(WIDTH, HEIGHT)?
         .with_title("Hello Minimal Bracket World")
         .with_font("Yayo.png", 8, 8)
-        .with_fullscreen(false) // this could be toggled with a config file! in the future...
+        .with_fullscreen(true) // this could be toggled with a config file! in the future...
         .build()?;
 
     let mut world = World::new();
@@ -64,7 +64,7 @@ fn main() -> BError {
     ));
 
     let map = generate_map();
-    let gs: State = State { world, map, };
+    let gs: State = State { world, map };
 
     main_loop(context, gs)
 }

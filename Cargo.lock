@@ -1518,6 +1518,7 @@ version = "0.1.0"
 dependencies = [
  "bracket-noise",
  "bracket-pathfinding",
+ "bracket-random",
  "bracket-terminal",
  "hecs",
  "rand",
