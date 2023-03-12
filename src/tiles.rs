@@ -6,9 +6,9 @@ pub fn wall_stone() -> WorldTile {
         is_transparent: false,
         is_blocking: true,
         sprite: CharSprite {
-            glyph: to_cp437('\''),
-            fg: RGB::named(LIGHTYELLOW),
-            bg: RGB::named(DARKORANGE1),
+            glyph: to_cp437('#'),
+            fg: RGB::named(SANDY_BROWN),
+            bg: RGB::named(BROWN4),
         },
     }
 }
@@ -39,6 +39,7 @@ pub fn floor_stone() -> WorldTile {
 
 // SLATEBLUE coming soon...
 
+#[allow(dead_code)]
 pub fn floor_grass() -> WorldTile {
     WorldTile {
         is_transparent: true,
@@ -57,8 +58,8 @@ pub fn lush_brush() -> WorldTile {
         is_blocking: false,
         sprite: CharSprite {
             glyph: to_cp437('½'),
-            fg: RGB::named(WHITESMOKE),
-            bg: RGB::named(LAWN_GREEN),
+            fg: RGB::named(GREEN3),
+            bg: RGB::named(DARK_GREEN),
         },
     }
 }

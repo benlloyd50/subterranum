@@ -21,6 +21,16 @@ pub struct ViewShed {
     pub dirty: bool, // whether or not to regenerate the viewshed
 }
 
+impl ViewShed {
+    pub fn new(range: i32) -> Self {
+        Self {
+            range,
+            visible_tiles: Vec::new(),
+            dirty: true,
+        }
+    }
+}
+
 pub fn update_vision(state: &mut State) {
     for (_, (viewshed, pos)) in state.world.query::<(&mut ViewShed, &Position)>().iter() {
         if !viewshed.dirty {

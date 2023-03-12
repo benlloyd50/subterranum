@@ -1,10 +1,9 @@
 /* Map.rs is the map generation code and data structures to hold information about the map
  */
-use std::collections::VecDeque;
 use bracket_noise::prelude::*;
 use bracket_random::prelude::*;
-use bracket_terminal::prelude::BTerm;
-use bracket_terminal::prelude::Point;
+use bracket_terminal::prelude::{BTerm, Point};
+use std::collections::VecDeque;
 
 use crate::{tiles::*, CharSprite};
 
@@ -22,11 +21,11 @@ pub fn render_map(ctx: &mut BTerm, map: &Map) {
     let mut x = 0;
     let mut y = 0;
     for tile in map.tiles.iter() {
-        if map.visible[xy_to_idx(x, y)] {
-            ctx.set(x, y, tile.sprite.fg, tile.sprite.bg, tile.sprite.glyph);
-        } else if map.discovered[xy_to_idx(x, y)]{
-            ctx.set(x, y, tile.sprite.fg.to_greyscale(), tile.sprite.bg.to_greyscale(), tile.sprite.glyph);
-        }
+        // if map.visible[xy_to_idx(x, y)] {
+        ctx.set(x, y, tile.sprite.fg, tile.sprite.bg, tile.sprite.glyph);
+        // } else if map.discovered[xy_to_idx(x, y)]{
+        //     ctx.set(x, y, tile.sprite.fg.to_greyscale(), tile.sprite.bg.to_greyscale(), tile.sprite.glyph);
+        // }
 
         x += 1;
         if x >= MAP_WIDTH {
@@ -95,13 +94,12 @@ pub fn generate_map() -> Map {
 
 /// Spawns multiple brushes
 fn brush_spawn(map: &mut Map) {
-
     // Get 4 starting(breeding) points
     let mut rng = RandomNumberGenerator::new();
     let starting_points = get_spaced_points(10, map, &mut rng);
     for point in starting_points {
         let mut breeding = VecDeque::new();
-        breeding.push_front((point,0));
+        breeding.push_front((point, 0));
 
         let mut lifetimes = 75;
         let mut planted = 0;
@@ -125,11 +123,10 @@ fn brush_spawn(map: &mut Map) {
             }
         }
         println!("{:#?}", planted);
-
     }
 }
 
-/// Gets spaced random points by looking through 4 equal perimeter rectangles inside of 
+/// Gets spaced random points by looking through 4 equal perimeter rectangles inside of
 /// the larger rectangle that is the map
 fn get_spaced_points(num_points: u32, map: &Map, rng: &mut RandomNumberGenerator) -> Vec<Point> {
     let mut spaced_points = vec![];
@@ -149,24 +146,27 @@ fn get_spaced_points(num_points: u32, map: &Map, rng: &mut RandomNumberGenerator
             spaced_points.push(potential);
         } else {
             amt += 1
-        } 
+        }
 
-        match i % 4{
+        match i % 4 {
             0 => {
                 leftx += MAP_WIDTH as i32 / 2;
                 rightx += MAP_WIDTH as i32 / 2;
-            }, 1 => {
+            }
+            1 => {
                 topy += MAP_HEIGHT as i32 / 2;
                 bottomy += MAP_HEIGHT as i32 / 2;
-            },  2 => {
+            }
+            2 => {
                 leftx -= MAP_WIDTH as i32 / 2;
                 rightx -= MAP_WIDTH as i32 / 2;
-            }, 3 =>  {
+            }
+            3 => {
                 topy -= MAP_HEIGHT as i32 / 2;
                 bottomy -= MAP_HEIGHT as i32 / 2;
-            },
+            }
             _ => unreachable!(),
-        }     
+        }
     }
 
     spaced_points

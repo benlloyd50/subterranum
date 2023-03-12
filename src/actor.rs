@@ -1,56 +1,39 @@
+/*  Actors are defined as entities who performs actions.
+   This file defines the components and systems commonly used by them.
+*/
 use bracket_terminal::prelude::*;
 
 use crate::{
-    map::{xy_to_idx, MAP_HEIGHT, MAP_WIDTH},
-    BTerm, State, ViewShed, With,
+    fov::ViewShed,
+    map::{xy_to_idx, Map, MAP_HEIGHT, MAP_WIDTH},
+    BTerm, State,
 };
 
-pub fn try_move_player(ctx: &mut BTerm, state: &State) {
-    for (_, (pos, view)) in state
-        .world
-        .query::<(With<&mut Position, &Player>, &mut ViewShed)>()
-        .iter()
-    {
-        let mut dest_tile = pos.clone();
-        if let Some(key) = ctx.key {
-            match key {
-                VirtualKeyCode::W => {
-                    dest_tile.y = dest_tile.y.saturating_sub(1);
-                }
-                VirtualKeyCode::S => {
-                    dest_tile.y += 1;
-                }
-                VirtualKeyCode::A => {
-                    dest_tile.x = dest_tile.x.saturating_sub(1);
-                }
-                VirtualKeyCode::D => {
-                    dest_tile.x += 1;
-                }
-                _ => {}
-            }
-        }
-
-        if let Some(tile) = state.map.tiles.get(xy_to_idx(dest_tile.x, dest_tile.y)) {
-            if !tile.is_blocking && within_bounds(dest_tile) {
-                *pos = dest_tile;
-                view.dirty = true;
-            }
+/// Attempts to move an entity's position given it is allowed to move there
+/// Returns true if successful in moving
+pub fn try_move(map: &Map, dest_tile: Position, pos: &mut Position, view: &mut ViewShed) -> bool {
+    if let Some(tile) = map.tiles.get(xy_to_idx(dest_tile.x, dest_tile.y)) {
+        if !tile.is_blocking && within_bounds(dest_tile) {
+            *pos = dest_tile;
+            view.dirty = true;
+            return true;
         }
     }
+    false
 }
 
 fn within_bounds(tile_pos: Position) -> bool {
     tile_pos.x < MAP_WIDTH && tile_pos.y < MAP_HEIGHT
 }
 
-// Renders all entities that have a Position and Sprite component
+/// Renders all entities that have a Position and Sprite component
 pub fn render_entities(ctx: &mut BTerm, state: &State) {
     for (_, (pos, sprite)) in state.world.query::<(&Position, &CharSprite)>().iter() {
         ctx.set(pos.x, pos.y, sprite.fg, sprite.bg, sprite.glyph);
     }
 }
 
-// Tag Component that marks the player entity
+/// Tag Component that marks the player entity
 pub struct Player;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -75,7 +58,7 @@ pub struct CharSprite {
 type Color = (u8, u8, u8);
 
 impl CharSprite {
-    // Create a new sprite, bg defaults to black which is useful for items
+    /// Create a new sprite, bg defaults to black which is useful for items
     pub fn new(glyph: char, fg: Color, bg: Option<Color>) -> Self {
         match bg {
             Some(bg) => Self {
