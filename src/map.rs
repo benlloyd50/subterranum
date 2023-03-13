@@ -16,6 +16,17 @@ pub struct Map {
     pub discovered: Vec<bool>,
 }
 
+impl Map {
+    /// Generates an empty map object, useful for setting up the game before it's started
+    pub fn empty() -> Self {
+        Self {
+            tiles: Vec::new(),
+            visible: Vec::new(),
+            discovered: Vec::new(),
+        }
+    }
+}
+
 /// Renders the world from the player perspective
 pub fn render_map(ctx: &mut BTerm, map: &Map) {
     let mut x = 0;

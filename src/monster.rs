@@ -3,10 +3,18 @@ use std::fmt;
 
 use hecs::With;
 
-use crate::{actor::{Position, try_move}, State, fov::ViewShed};
+use crate::{
+    actor::{try_move, Position},
+    fov::ViewShed,
+    State,
+};
 
 pub fn handle_monster_turns(state: &mut State) {
-    for (_, (mut pos, view)) in state.world.query::<With<(&mut Position, &mut ViewShed), &Breed>>().iter() {
+    for (_, (mut pos, view)) in state
+        .world
+        .query::<With<(&mut Position, &mut ViewShed), &Breed>>()
+        .iter()
+    {
         let mut new_pos = pos.clone();
         match random::<u8>() % 4 {
             0 => {
@@ -28,6 +36,7 @@ pub fn handle_monster_turns(state: &mut State) {
 }
 
 /// General info about the type of monster/creature
+#[allow(dead_code)]
 pub struct Breed {
     being_type: MonsterType,
     name: String,

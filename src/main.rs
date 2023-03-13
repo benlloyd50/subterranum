@@ -4,6 +4,7 @@ use bracket_terminal::prelude::*;
 use hecs::*;
 
 mod map;
+mod menu;
 mod monster;
 use map::{generate_map, render_map, Map, MAP_HEIGHT, MAP_WIDTH};
 mod fov;
@@ -11,17 +12,28 @@ use fov::{update_vision, ViewShed};
 mod actor;
 mod tiles;
 use actor::{render_entities, try_move, CharSprite, Player, Position};
+use menu::run_menu_systems;
 use monster::handle_monster_turns;
 
-use crate::monster::{Breed, MonsterType};
+use crate::{
+    menu::MenuIndex,
+    monster::{Breed, MonsterType},
+};
 
-pub const HEIGHT: usize = 80;
-pub const WIDTH: usize = 120;
+pub const SCREEN_SIZE_Y: usize = 80;
+pub const SCREEN_SIZE_X: usize = 120;
 
 pub struct State {
     world: World, // Holds all of our entities
     map: Map,     // Holds the tiles to the world
-                  // player_e: Entity // The player's entity for convienent lookup
+    // player_e: Entity // The player's entity for convienent lookup
+    runstate: RunState,
+}
+
+#[derive(Clone)]
+pub enum RunState {
+    InGame,
+    MainMenu(MenuIndex),
 }
 
 impl State {
@@ -79,12 +91,23 @@ impl State {
 
 impl GameState for State {
     fn tick(&mut self, ctx: &mut BTerm) {
-        self.run_continuous_systems(ctx);
+        let mut newstate = self.runstate.clone();
 
-        let response_needed = self.player_input(ctx);
-        if response_needed {
-            self.run_response_systems();
+        match newstate {
+            RunState::InGame => {
+                self.run_continuous_systems(ctx);
+
+                let response_needed = self.player_input(ctx);
+                if response_needed {
+                    self.run_response_systems();
+                }
+            }
+            RunState::MainMenu(menu_idx) => {
+                newstate = run_menu_systems(self, ctx, menu_idx.0);
+            }
         }
+
+        self.runstate = newstate;
     }
 }
 
@@ -93,14 +116,37 @@ bracket_terminal::embedded_resource!(TILE_FONT, "../resources/Yayo.png");
 fn main() -> BError {
     //Setup terminal renderer
     bracket_terminal::link_resource!(TILE_FONT, "resources/Yayo.png");
-    let context = BTermBuilder::simple(WIDTH, HEIGHT)?
+    let context = BTermBuilder::simple(SCREEN_SIZE_X, SCREEN_SIZE_Y)?
         .with_title("Terra Incognita [ALPHA]")
         .with_font("Yayo.png", 8, 8)
         .with_fullscreen(false) // this could be toggled with a config file! in the future...
         .build()?;
 
+    // Initialize the bare minimum to get into the main menu for the rest of the game initialization
     let mut world = World::new();
 
+    let dev_mode = true;
+    let gs = if dev_mode {
+        // For dev purposes, we can skip the main menu
+        let map = start_new_game(&mut world);
+        State {
+            world,
+            map,
+            runstate: RunState::InGame,
+        }
+    } else {
+        State {
+            world,
+            map: Map::empty(),
+            runstate: RunState::MainMenu(MenuIndex(0)),
+        }
+    };
+
+    main_loop(context, gs)
+}
+
+/// Creates a new map and setups world for the start of a fresh run
+pub fn start_new_game(world: &mut World) -> Map {
     world.spawn((
         Position::new(5, 5),
         CharSprite::new('☺', CYAN, None),
@@ -117,8 +163,5 @@ fn main() -> BError {
 
     world.spawn((Position::new(10, 12), CharSprite::new('@', YELLOW, None)));
 
-    let map = generate_map();
-    let gs = State { world, map };
-
-    main_loop(context, gs)
+    generate_map()
 }
