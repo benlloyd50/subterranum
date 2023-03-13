@@ -12,3 +12,5 @@ bracket-noise = "0.8.7"
 bracket-pathfinding = "0.8.7"
 bracket-random = "0.8.2"
 rand = "0.8.5"
+toml = "0.7.2"
+serde = { version = "1.0", features = ["derive"] }

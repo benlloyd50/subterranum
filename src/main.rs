@@ -1,4 +1,4 @@
-use std::process::exit;
+use std::{process::exit, fs};
 
 use bracket_terminal::prelude::*;
 use hecs::*;
@@ -14,6 +14,7 @@ mod tiles;
 use actor::{render_entities, try_move, CharSprite, Player, Position};
 use menu::run_menu_systems;
 use monster::handle_monster_turns;
+use serde::Deserialize;
 
 use crate::{
     menu::MenuIndex,
@@ -50,37 +51,54 @@ impl State {
     /// Checks for player's input and runs corresponding action
     /// Returns True if the player's action requires a response
     fn player_input(&mut self, ctx: &mut BTerm) -> bool {
-        for (_, (pos, view)) in self
-            .world
-            .query::<(With<&mut Position, &Player>, &mut ViewShed)>()
-            .iter()
-        {
+        let mut should_respond = false;
+        for (_, (pos, view)) in self.world.query::<(With<&mut Position, &Player>, &mut ViewShed)>().iter() {
             // dest_tile represents the position of something the player will interact with
             let mut dest_pos = pos.clone();
             if let Some(key) = ctx.key {
                 match key {
-                    VirtualKeyCode::W => {
+                    VirtualKeyCode::W | VirtualKeyCode::K => {
                         dest_pos.y = dest_pos.y.saturating_sub(1);
-                        return try_move(&self.map, dest_pos, pos, view);
+                        should_respond = try_move(&self.map, dest_pos, pos, view);
                     }
-                    VirtualKeyCode::S => {
+                    VirtualKeyCode::S | VirtualKeyCode::J=> {
                         dest_pos.y += 1;
-                        return try_move(&self.map, dest_pos, pos, view);
+                        should_respond = try_move(&self.map, dest_pos, pos, view);
                     }
-                    VirtualKeyCode::A => {
+                    VirtualKeyCode::A | VirtualKeyCode::H=> {
                         dest_pos.x = dest_pos.x.saturating_sub(1);
-                        return try_move(&self.map, dest_pos, pos, view);
+                        should_respond = try_move(&self.map, dest_pos, pos, view);
                     }
-                    VirtualKeyCode::D => {
+                    VirtualKeyCode::D | VirtualKeyCode::L=> {
                         dest_pos.x += 1;
-                        return try_move(&self.map, dest_pos, pos, view);
+                        should_respond = try_move(&self.map, dest_pos, pos, view);
+                    }
+                    VirtualKeyCode::Y => {
+                        dest_pos.x = dest_pos.x.saturating_sub(1);
+                        dest_pos.y = dest_pos.y.saturating_sub(1);
+                        should_respond = try_move(&self.map, dest_pos, pos, view);
+                    }
+                    VirtualKeyCode::U => {
+                        dest_pos.x += 1;
+                        dest_pos.y = dest_pos.y.saturating_sub(1);
+                        should_respond = try_move(&self.map, dest_pos, pos, view);
+                    }
+                    VirtualKeyCode::N => {
+                        dest_pos.x = dest_pos.x.saturating_sub(1);
+                        dest_pos.y += 1;
+                        should_respond = try_move(&self.map, dest_pos, pos, view);
+                    }
+                    VirtualKeyCode::M => {
+                        dest_pos.x += 1;
+                        dest_pos.y += 1;
+                        should_respond = try_move(&self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::Escape => exit(0),
                     _ => {}
                 }
             }
         }
-        false
+        should_respond
     }
 
     /// Response systems are ran after a player inputs something that progresses a turn
@@ -114,19 +132,22 @@ impl GameState for State {
 bracket_terminal::embedded_resource!(TILE_FONT, "../resources/Yayo.png");
 
 fn main() -> BError {
-    //Setup terminal renderer
+    // Reads in a config file to setup the game
+    let contents: String = fs::read_to_string("resources/config.toml")?;
+    let config: Config = toml::from_str(&contents).unwrap();
+
+    // Setup terminal renderer
     bracket_terminal::link_resource!(TILE_FONT, "resources/Yayo.png");
-    let context = BTermBuilder::simple(SCREEN_SIZE_X, SCREEN_SIZE_Y)?
+    let context = BTermBuilder::simple(config.screensize_x, config.screensize_y)?
         .with_title("Terra Incognita [ALPHA]")
-        .with_font("Yayo.png", 8, 8)
-        .with_fullscreen(false) // this could be toggled with a config file! in the future...
+        .with_font(config.font_file, config.font_size, config.font_size)
+        .with_fullscreen(config.fullscreen) // this could be toggled with a config file! in the future...
         .build()?;
 
     // Initialize the bare minimum to get into the main menu for the rest of the game initialization
     let mut world = World::new();
 
-    let dev_mode = true;
-    let gs = if dev_mode {
+    let gs = if config.dev_mode {
         // For dev purposes, we can skip the main menu
         let map = start_new_game(&mut world);
         State {
@@ -164,4 +185,14 @@ pub fn start_new_game(world: &mut World) -> Map {
     world.spawn((Position::new(10, 12), CharSprite::new('@', YELLOW, None)));
 
     generate_map()
+}
+
+#[derive(Deserialize)]
+struct Config {
+    fullscreen: bool,
+    dev_mode: bool,
+    font_file: String,
+    font_size: usize,
+    screensize_x: usize,
+    screensize_y: usize,
 }
