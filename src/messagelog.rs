@@ -1,13 +1,14 @@
+#[derive(Clone)]
 pub struct Message {
     pub contents: String,
-    turn_sent: usize,
+    _turn_sent: usize,
 }
 
 impl Message {
     pub fn new(contents: String) -> Self {
         Self {
             contents,
-            turn_sent: 0,
+            _turn_sent: 0,
         }
     }
 }

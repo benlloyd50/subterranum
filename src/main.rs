@@ -13,6 +13,7 @@ use map::{generate_map, render_map, Map, MAP_HEIGHT, MAP_WIDTH};
 mod fov;
 use fov::{update_vision, ViewShed};
 mod actor;
+mod item;
 mod tiles;
 use actor::{render_entities, try_move, CharSprite, Player, Position};
 use menu::run_menu_systems;
@@ -32,6 +33,7 @@ pub struct State {
     runstate: RunState,
     message_log: Vec<Message>,
     config: Config,
+    turn_counter: usize,
 }
 
 #[derive(Clone)]
@@ -50,7 +52,6 @@ impl State {
         render_entities(ctx, &self);
 
         draw_gui(ctx, self);
-        ctx.print_color(0, 79, WHITESMOKE, BLACK, format!("FPS: {}", ctx.fps));
     }
 
     /// Checks for player's input and runs corresponding action
@@ -68,39 +69,39 @@ impl State {
                 match key {
                     VirtualKeyCode::W | VirtualKeyCode::K => {
                         dest_pos.y = dest_pos.y.saturating_sub(1);
-                        should_respond = try_move(&self.map, dest_pos, pos, view);
+                        should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::S | VirtualKeyCode::J => {
                         dest_pos.y += 1;
-                        should_respond = try_move(&self.map, dest_pos, pos, view);
+                        should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::A | VirtualKeyCode::H => {
                         dest_pos.x = dest_pos.x.saturating_sub(1);
-                        should_respond = try_move(&self.map, dest_pos, pos, view);
+                        should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::D | VirtualKeyCode::L => {
                         dest_pos.x += 1;
-                        should_respond = try_move(&self.map, dest_pos, pos, view);
+                        should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::Y => {
                         dest_pos.x = dest_pos.x.saturating_sub(1);
                         dest_pos.y = dest_pos.y.saturating_sub(1);
-                        should_respond = try_move(&self.map, dest_pos, pos, view);
+                        should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::U => {
                         dest_pos.x += 1;
                         dest_pos.y = dest_pos.y.saturating_sub(1);
-                        should_respond = try_move(&self.map, dest_pos, pos, view);
+                        should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::N => {
                         dest_pos.x = dest_pos.x.saturating_sub(1);
                         dest_pos.y += 1;
-                        should_respond = try_move(&self.map, dest_pos, pos, view);
+                        should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::M => {
                         dest_pos.x += 1;
                         dest_pos.y += 1;
-                        should_respond = try_move(&self.map, dest_pos, pos, view);
+                        should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::Escape => exit(0),
                     _ => {}
@@ -112,7 +113,7 @@ impl State {
 
     /// Response systems are ran after a player inputs something that progresses a turn
     fn run_response_systems(&mut self) {
-        handle_monster_turns(self);
+        handle_monster_turns(&mut self.world, &mut self.map, &mut self.message_log);
     }
 }
 
@@ -126,6 +127,7 @@ impl GameState for State {
 
                 let response_needed = self.player_input(ctx);
                 if response_needed {
+                    self.turn_counter += 1;
                     self.run_response_systems();
                 }
             }
@@ -156,28 +158,17 @@ fn main() -> BError {
     let mut world = World::new();
     let gs = if config.dev_mode {
         // For dev purposes, we can skip the main menu
-        let map = start_new_game(&mut world);
+        let map = start_new_game(&mut world, config.world_seed);
         State {
             world,
             map,
             runstate: RunState::InGame,
             config,
             message_log: vec![
-                Message::new("Welcome".to_string()),
-                Message::new("I cant believe that".to_string()),
-                Message::new("it moves".to_string()),
-                Message::new("stop 9420 moving".to_string()),
-                Message::new("it attacks".to_string()),
-
-                Message::new("Welcome".to_string()),
-                Message::new("I cant believe tha 9103 t".to_string()),
-                Message::new("it moves".to_string()),
-                Message::new("stop moving".to_string()),
-                Message::new("Welcome".to_string()),
-                Message::new("I cant believe that 921".to_string()),
-                Message::new("it moves 8".to_string()),
-                Message::new("stop moving 3".to_string()),
+                Message::new("Welcome to Terra Incognita".to_string()),
+                Message::new("This is an alpha build from March 2023".to_string()),
             ],
+            turn_counter: 0,
         }
     } else {
         State {
@@ -185,7 +176,11 @@ fn main() -> BError {
             map: Map::empty(),
             runstate: RunState::MainMenu(MenuIndex(0)),
             config,
-            message_log: Vec::new(),
+            message_log: vec![
+                Message::new("Welcome to Terra Incognita".to_string()),
+                Message::new("This is an alpha build from March 2023".to_string()),
+            ],
+            turn_counter: 0,
         }
     };
 
@@ -193,7 +188,7 @@ fn main() -> BError {
 }
 
 /// Creates a new map and setups world for the start of a fresh run
-pub fn start_new_game(world: &mut World) -> Map {
+pub fn start_new_game(world: &mut World, seed: u64) -> Map {
     world.spawn((
         Position::new(5, 5),
         CharSprite::new('☺', CYAN, None),
@@ -210,7 +205,7 @@ pub fn start_new_game(world: &mut World) -> Map {
 
     world.spawn((Position::new(10, 12), CharSprite::new('@', YELLOW, None)));
 
-    generate_map()
+    generate_map(seed)
 }
 
 #[derive(Deserialize)]
@@ -221,4 +216,19 @@ pub struct Config {
     font_size: usize,
     screensize_x: usize,
     screensize_y: usize,
+    world_seed: u64,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            fullscreen: false,
+            dev_mode: false,
+            font_file: "Yayo.png".to_string(),
+            font_size: 8,
+            screensize_x: 120,
+            screensize_y: 80,
+            world_seed: 1,
+        }
+    }
 }

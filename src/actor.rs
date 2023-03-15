@@ -5,18 +5,44 @@ use bracket_terminal::prelude::*;
 
 use crate::{
     fov::ViewShed,
-    map::{xy_to_idx, Map, MAP_HEIGHT, MAP_WIDTH},
+    map::{xy_to_idx, Destructible, Map, MAP_HEIGHT, MAP_WIDTH},
+    tiles::floor_grass,
     BTerm, State,
 };
 
 /// Attempts to move an entity's position given it is allowed to move there
 /// Returns true if successful in moving
-pub fn try_move(map: &Map, dest_tile: Position, pos: &mut Position, view: &mut ViewShed) -> bool {
-    if let Some(tile) = map.tiles.get(xy_to_idx(dest_tile.x, dest_tile.y)) {
+pub fn try_move(
+    map: &mut Map,
+    dest_tile: Position,
+    pos: &mut Position,
+    view: &mut ViewShed,
+) -> bool {
+    let idx = xy_to_idx(dest_tile.x, dest_tile.y);
+    if let Some(mut tile) = map.tiles.get_mut(idx) {
         if !tile.is_blocking && within_bounds(dest_tile) {
             *pos = dest_tile;
             view.dirty = true;
             return true;
+        } else {
+            match tile.destructible {
+                Destructible::ByHand {
+                    mut health,
+                    dropped_item,
+                } => {
+                    health -= 1;
+                    tile.destructible = Destructible::ByHand {
+                        health,
+                        dropped_item,
+                    };
+                    println!("Hit grass for 1, hp left {}", health);
+                    if health <= 0 {
+                        map.tiles[idx] = floor_grass();
+                        println!("Hit grass for 1, hp left {}, it was replaced", health);
+                    }
+                }
+                Destructible::Unbreakable => {}
+            };
         }
     }
     false

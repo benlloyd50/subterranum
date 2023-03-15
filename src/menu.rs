@@ -20,7 +20,7 @@ pub fn run_menu_systems(state: &mut State, ctx: &mut BTerm, menu_index: usize) -
             }
             VirtualKeyCode::Return => {
                 if menu_index == 0 {
-                    state.map = start_new_game(&mut state.world);
+                    state.map = start_new_game(&mut state.world, state.config.world_seed);
                     return RunState::InGame;
                 } else if menu_index == 1 {
                     error_message = Some("No saved games found.".to_string());

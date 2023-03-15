@@ -1,4 +1,8 @@
-use crate::{map::WorldTile, CharSprite};
+use crate::{
+    item::Item,
+    map::{Destructible, WorldTile},
+    CharSprite,
+};
 use bracket_terminal::prelude::*;
 
 pub fn wall_stone() -> WorldTile {
@@ -9,6 +13,10 @@ pub fn wall_stone() -> WorldTile {
             glyph: to_cp437('#'),
             fg: RGB::named(SANDY_BROWN),
             bg: RGB::named(BROWN4),
+        },
+        destructible: Destructible::ByHand {
+            health: 4,
+            dropped_item: Item {},
         },
     }
 }
@@ -22,6 +30,7 @@ pub fn deep_water() -> WorldTile {
             fg: RGB::named(WHITE_SMOKE),
             bg: RGB::named(ROYAL_BLUE),
         },
+        destructible: Destructible::Unbreakable,
     }
 }
 
@@ -34,6 +43,7 @@ pub fn floor_stone() -> WorldTile {
             fg: RGB::named(WHITESMOKE),
             bg: RGB::named(LIGHTSLATEGRAY),
         },
+        destructible: Destructible::Unbreakable,
     }
 }
 
@@ -49,6 +59,7 @@ pub fn floor_grass() -> WorldTile {
             fg: RGB::named(WHITESMOKE),
             bg: RGB::named(FOREST_GREEN),
         },
+        destructible: Destructible::Unbreakable,
     }
 }
 
@@ -61,5 +72,6 @@ pub fn lush_brush() -> WorldTile {
             fg: RGB::named(GREEN3),
             bg: RGB::named(DARK_GREEN),
         },
+        destructible: Destructible::Unbreakable,
     }
 }

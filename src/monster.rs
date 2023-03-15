@@ -1,18 +1,18 @@
 use rand::random;
 use std::fmt;
 
-use hecs::With;
+use hecs::World;
 
 use crate::{
     actor::{try_move, Position},
     fov::ViewShed,
-    State,
+    map::Map,
+    messagelog::Message,
 };
 
-pub fn handle_monster_turns(state: &mut State) {
-    for (_, (mut pos, view)) in state
-        .world
-        .query::<With<(&mut Position, &mut ViewShed), &Breed>>()
+pub fn handle_monster_turns(world: &mut World, map: &mut Map, msg_log: &mut Vec<Message>) {
+    for (_, (mut pos, view, breed)) in world
+        .query::<(&mut Position, &mut ViewShed, &Breed)>()
         .iter()
     {
         let mut new_pos = pos.clone();
@@ -28,10 +28,11 @@ pub fn handle_monster_turns(state: &mut State) {
             }
             3 => {
                 new_pos.y = new_pos.y.saturating_sub(1);
+                msg_log.push(Message::new(format!("{}: A freaking 3 again?", breed.name)));
             }
             _ => {}
         }
-        try_move(&state.map, new_pos, &mut pos, view);
+        try_move(map, new_pos, &mut pos, view);
     }
 }
 

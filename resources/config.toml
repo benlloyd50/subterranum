@@ -8,3 +8,5 @@ font_size = 8
 
 screensize_x = 120
 screensize_y = 80
+
+world_seed = 69

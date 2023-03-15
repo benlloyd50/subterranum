@@ -5,7 +5,7 @@ use bracket_random::prelude::*;
 use bracket_terminal::prelude::{BTerm, Point};
 use std::collections::VecDeque;
 
-use crate::{tiles::*, CharSprite};
+use crate::{item::Item, tiles::*, CharSprite};
 
 pub const MAP_WIDTH: usize = 100;
 pub const MAP_HEIGHT: usize = 70;
@@ -70,9 +70,16 @@ pub struct WorldTile {
     pub sprite: CharSprite,
     pub is_blocking: bool,
     pub is_transparent: bool,
+    pub destructible: Destructible,
 }
 
-pub fn generate_map() -> Map {
+#[derive(Copy, Clone)]
+pub enum Destructible {
+    ByHand { health: usize, dropped_item: Item },
+    Unbreakable,
+}
+
+pub fn generate_map(seed: u64) -> Map {
     // create the map for the overworld
     let mut map = Map {
         tiles: vec![wall_stone(); MAP_HEIGHT * MAP_WIDTH],
@@ -80,8 +87,9 @@ pub fn generate_map() -> Map {
         discovered: vec![false; MAP_WIDTH * MAP_HEIGHT],
     };
 
+    let mut rng = RandomNumberGenerator::seeded(seed);
     // Perlin noise suited for terrain
-    let terrain_noise = terrain_perlin(69);
+    let terrain_noise = terrain_perlin(seed);
 
     for x in 0..MAP_WIDTH {
         for y in 0..MAP_HEIGHT {
@@ -98,16 +106,15 @@ pub fn generate_map() -> Map {
         }
     }
 
-    brush_spawn(&mut map);
+    brush_spawn(&mut map, &mut rng);
 
     map
 }
 
 /// Spawns multiple brushes
-fn brush_spawn(map: &mut Map) {
+fn brush_spawn(map: &mut Map, rng: &mut RandomNumberGenerator) {
     // Get 4 starting(breeding) points
-    let mut rng = RandomNumberGenerator::new();
-    let starting_points = get_spaced_points(10, map, &mut rng);
+    let starting_points = get_spaced_points(10, map, rng);
     for point in starting_points {
         let mut breeding = VecDeque::new();
         breeding.push_front((point, 0));
@@ -205,7 +212,6 @@ fn get_neighbors(point: Point) -> Vec<Point> {
 
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
     #[test]
