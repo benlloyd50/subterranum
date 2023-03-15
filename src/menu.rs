@@ -2,7 +2,7 @@ use std::cmp;
 
 use bracket_terminal::prelude::*;
 
-use crate::{start_new_game, RunState, State, SCREEN_SIZE_X, SCREEN_SIZE_Y};
+use crate::{start_new_game, Config, RunState, State};
 
 const MAINMENU_OPTIONS: [&'static str; 3] = ["New World", "Load Game", "Options"];
 
@@ -32,24 +32,32 @@ pub fn run_menu_systems(state: &mut State, ctx: &mut BTerm, menu_index: usize) -
         },
         None => (),
     }
-    draw_menu_screen(menu_index, ctx, error_message);
+    draw_menu_screen(menu_index, ctx, error_message, &state.config);
     RunState::MainMenu(MenuIndex(new_menu_index))
 }
 
-pub fn draw_menu_screen(active_idx: usize, ctx: &mut BTerm, error_message: Option<String>) {
-    ctx.draw_box(0, 0, SCREEN_SIZE_X - 1, SCREEN_SIZE_Y - 1, WHITE, BLACK);
+pub fn draw_menu_screen(
+    active_idx: usize,
+    ctx: &mut BTerm,
+    error_message: Option<String>,
+    cfg: &Config,
+) {
+    let screen_size_x = cfg.screensize_x;
+    let screen_size_y = cfg.screensize_y;
+
+    ctx.draw_box(0, 0, screen_size_x - 1, screen_size_y - 1, WHITE, BLACK);
     ctx.print(20, 10, format!("Main Menu Index: {}", active_idx));
-    ctx.print(8, SCREEN_SIZE_Y / 2 - 5, "Terra Incognita");
+    ctx.print(8, screen_size_y / 2 - 5, "Terra Incognita");
 
     if let Some(err) = error_message {
-        ctx.print(8, SCREEN_SIZE_Y / 2 + 5, err);
+        ctx.print(8, screen_size_y / 2 + 5, err);
     }
 
     for (idx, choice) in MAINMENU_OPTIONS.iter().enumerate() {
         if idx == active_idx {
-            ctx.print_color(8, SCREEN_SIZE_Y / 2 + idx, BLACK, WHITE, choice);
+            ctx.print_color(8, screen_size_y / 2 + idx, BLACK, WHITE, choice);
         } else {
-            ctx.print_color(8, SCREEN_SIZE_Y / 2 + idx, WHITE, BLACK, choice);
+            ctx.print_color(8, screen_size_y / 2 + idx, WHITE, BLACK, choice);
         }
     }
 }

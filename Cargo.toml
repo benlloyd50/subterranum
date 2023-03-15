@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-hecs = "0.9.1"
+hecs = {version = "0.10.0", features= ["column-serialize"]}
 bracket-terminal = "0.8.2"
 bracket-noise = "0.8.7"
 bracket-pathfinding = "0.8.7"
