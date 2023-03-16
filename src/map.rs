@@ -53,19 +53,18 @@ impl Map {
     }
 
     /// Converts 1d index to 2d Point
-    #[allow(dead_code)]
     pub fn idx_to_point(&self, idx: usize) -> Point {
         Point {
-            x: (idx / self.width) as i32,
-            y: (idx % self.width) as i32,
+            x: (idx % self.width) as i32,
+            y: (idx / self.width) as i32,
         }
     }
 
     /// Converts a 1d index to a 2d Position
     pub fn idx_to_pos(&self, idx: usize) -> Position {
         Position {
-            x: (idx / self.width),
-            y: (idx % self.width),
+            x: (idx % self.width),
+            y: (idx / self.width),
         }
     }
 
@@ -120,7 +119,7 @@ impl BaseMap for Map {
 
 impl Algorithm2D for Map {
     fn dimensions(&self) -> Point {
-        Point::new(MAP_WIDTH, MAP_HEIGHT)
+        Point::new(self.width, self.height)
     }
 }
 
