@@ -5,22 +5,20 @@ use bracket_terminal::prelude::*;
 
 use crate::{
     fov::ViewShed,
-    map::{xy_to_idx, Destructible, Map, MAP_HEIGHT, MAP_WIDTH},
+    map::{Destructible, Map},
     tiles::floor_grass,
     BTerm, State,
 };
 
 /// Attempts to move an entity's position given it is allowed to move there
 /// Returns true if successful in moving
-pub fn try_move(
-    map: &mut Map,
-    dest_tile: Position,
-    pos: &mut Position,
-    view: &mut ViewShed,
-) -> bool {
-    let idx = xy_to_idx(dest_tile.x, dest_tile.y);
+pub fn try_move(map: &mut Map, dest_tile: Position, pos: &mut Position, view: &mut ViewShed) -> bool {
+    let idx = map.xy_to_idx(dest_tile.x, dest_tile.y);
+    if !map.within_bounds(Point::new(dest_tile.x, dest_tile.y)) {
+        return false;
+    }
     if let Some(mut tile) = map.tiles.get_mut(idx) {
-        if !tile.is_blocking && within_bounds(dest_tile) {
+        if !tile.is_blocking {
             *pos = dest_tile;
             view.dirty = true;
             return true;
@@ -31,10 +29,7 @@ pub fn try_move(
                     dropped_item,
                 } => {
                     health -= 1;
-                    tile.destructible = Destructible::ByHand {
-                        health,
-                        dropped_item,
-                    };
+                    tile.destructible = Destructible::ByHand { health, dropped_item };
                     println!("Hit grass for 1, hp left {}", health);
                     if health <= 0 {
                         map.tiles[idx] = floor_grass();
@@ -46,10 +41,6 @@ pub fn try_move(
         }
     }
     false
-}
-
-fn within_bounds(tile_pos: Position) -> bool {
-    tile_pos.x < MAP_WIDTH && tile_pos.y < MAP_HEIGHT
 }
 
 /// Renders all entities that have a Position and Sprite component

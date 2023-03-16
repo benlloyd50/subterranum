@@ -9,7 +9,9 @@ mod map;
 mod menu;
 mod messagelog;
 mod monster;
-use map::{generate_map, render_map, Map, MAP_HEIGHT, MAP_WIDTH};
+mod worldgen;
+use map::{render_map, Map};
+use worldgen::generate_map;
 mod fov;
 use fov::{update_vision, ViewShed};
 mod actor;
@@ -102,6 +104,10 @@ impl State {
                         dest_pos.x += 1;
                         dest_pos.y += 1;
                         should_respond = try_move(&mut self.map, dest_pos, pos, view);
+                    }
+                    VirtualKeyCode::Space => {
+                        // A waiting action
+                        should_respond = true;
                     }
                     VirtualKeyCode::Escape => exit(0),
                     _ => {}
@@ -200,7 +206,7 @@ pub fn start_new_game(world: &mut World, seed: u64) -> Map {
         Breed::new(MonsterType::Centipede),
         CharSprite::new('c', ROSY_BROWN, None),
         Position::new(9, 10),
-        ViewShed::new(3),
+        ViewShed::new(7),
     ));
 
     world.spawn((Position::new(10, 12), CharSprite::new('@', YELLOW, None)));

@@ -36,12 +36,7 @@ pub fn run_menu_systems(state: &mut State, ctx: &mut BTerm, menu_index: usize) -
     RunState::MainMenu(MenuIndex(new_menu_index))
 }
 
-pub fn draw_menu_screen(
-    active_idx: usize,
-    ctx: &mut BTerm,
-    error_message: Option<String>,
-    cfg: &Config,
-) {
+pub fn draw_menu_screen(active_idx: usize, ctx: &mut BTerm, error_message: Option<String>, cfg: &Config) {
     let screen_size_x = cfg.screensize_x;
     let screen_size_y = cfg.screensize_y;
 
