@@ -146,7 +146,7 @@ impl GameState for State {
     }
 }
 
-bracket_terminal::embedded_resource!(TILE_FONT, "../resources/Yayo.png");
+bracket_terminal::embedded_resource!(TILE_FONT, "../resources/RDE.png");
 
 fn main() -> BError {
     // Reads in a config file to setup the game
@@ -154,11 +154,14 @@ fn main() -> BError {
     let config: Config = toml::from_str(&contents).unwrap();
 
     // Setup terminal renderer
-    bracket_terminal::link_resource!(TILE_FONT, "resources/Yayo.png");
-    let context = BTermBuilder::simple(config.screensize_x, config.screensize_y)?
+    bracket_terminal::link_resource!(TILE_FONT, "resources/RDE.png");
+    let context = BTermBuilder::new()
         .with_title("Terra Incognita [ALPHA]")
-        .with_font(&config.font_file, config.font_size, config.font_size)
-        .with_fullscreen(config.fullscreen) // this could be toggled with a config file! in the future...
+        .with_fullscreen(config.fullscreen)
+        .with_dimensions(config.screensize_x, config.screensize_y)
+        .with_tile_dimensions(config.font_size, config.font_size)
+        .with_font_bg(&config.font_file, config.font_size, config.font_size, RGB::from_u8(255, 0, 255))
+        .with_simple_console(config.screensize_x, config.screensize_y, &config.font_file)
         .build()?;
 
     let mut world = World::new();

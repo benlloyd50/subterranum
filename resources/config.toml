@@ -1,10 +1,9 @@
-
 fullscreen = false
 dev_mode = true
 
-font_file = "Yayo.png"
+font_file = "RDE.png"
 # square font sizes for life
-font_size = 8
+font_size = 8 
 
 screensize_x = 120
 screensize_y = 80
