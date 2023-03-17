@@ -25,14 +25,14 @@ pub fn update_vision(state: &mut State) {
         }
         viewshed.dirty = false;
         viewshed.visible_tiles.clear();
-        viewshed.visible_tiles = field_of_view(Point::new(pos.x, pos.y), viewshed.range, &state.map);
+        viewshed.visible_tiles = field_of_view(pos.0, viewshed.range, &state.map);
         viewshed.visible_tiles.retain(|p| state.map.within_bounds(*p));
 
         for tile in state.map.visible.iter_mut() {
             *tile = false;
         }
         for point in viewshed.visible_tiles.iter() {
-            let idx = state.map.point_to_idx(*point);
+            let idx = point.to_index(state.map.width);
             state.map.discovered[idx] = true;
             state.map.visible[idx] = true;
         }

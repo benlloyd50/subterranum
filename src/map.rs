@@ -47,11 +47,6 @@ impl Map {
         x + (y * self.width)
     }
 
-    /// Converts 2d position to a 1d index
-    pub fn point_to_idx(&self, point: Point) -> usize {
-        point.x as usize + (point.y as usize * self.width)
-    }
-
     /// Converts 1d index to 2d Point
     pub fn idx_to_point(&self, idx: usize) -> Point {
         Point {
@@ -62,17 +57,14 @@ impl Map {
 
     /// Converts a 1d index to a 2d Position
     pub fn idx_to_pos(&self, idx: usize) -> Position {
-        Position {
-            x: (idx % self.width),
-            y: (idx / self.width),
-        }
+        Position(Point::new(idx % self.width, idx / self.width))
     }
 
     /// Tiles not blocking and within map boundaries are considered valid
     pub fn valid_exit(&self, start_pos: Point, delta: Point) -> Option<usize> {
         let dest_tile = Point::new(start_pos.x + delta.x, start_pos.y + delta.y);
         if self.within_bounds(dest_tile) {
-            let idx = self.point_to_idx(dest_tile);
+            let idx = dest_tile.to_index(self.width);
             if !self.tiles[idx].is_blocking {
                 return Some(idx);
             }

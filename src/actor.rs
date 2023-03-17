@@ -13,8 +13,8 @@ use crate::{
 /// Attempts to move an entity's position given it is allowed to move there
 /// Returns true if successful in moving
 pub fn try_move(map: &mut Map, dest_tile: Position, pos: &mut Position, view: &mut ViewShed) -> bool {
-    let idx = map.xy_to_idx(dest_tile.x, dest_tile.y);
-    if !map.within_bounds(Point::new(dest_tile.x, dest_tile.y)) {
+    let idx = dest_tile.0.to_index(map.width);
+    if !map.within_bounds(dest_tile.0) {
         return false;
     }
     if let Some(mut tile) = map.tiles.get_mut(idx) {
@@ -31,7 +31,7 @@ pub fn try_move(map: &mut Map, dest_tile: Position, pos: &mut Position, view: &m
                     health -= 1;
                     tile.destructible = Destructible::ByHand { health, dropped_item };
                     println!("Hit grass for 1, hp left {}", health);
-                    if health <= 0 {
+                    if health == 0 {
                         map.tiles[idx] = floor_grass();
                         println!("Hit grass for 1, hp left {}, it was replaced", health);
                     }
@@ -46,22 +46,28 @@ pub fn try_move(map: &mut Map, dest_tile: Position, pos: &mut Position, view: &m
 /// Renders all entities that have a Position and Sprite component
 pub fn render_entities(ctx: &mut BTerm, state: &State) {
     for (_, (pos, sprite)) in state.world.query::<(&Position, &CharSprite)>().iter() {
-        ctx.set(pos.x, pos.y, sprite.fg, sprite.bg, sprite.glyph);
+        ctx.set(pos.x(), pos.y(), sprite.fg, sprite.bg, sprite.glyph);
     }
 }
 
 /// Tag Component that marks the player entity
 pub struct Player;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Position {
-    pub x: usize,
-    pub y: usize,
-}
+#[derive(Clone, Debug)]
+pub struct Position(pub Point);
 
 impl Position {
     pub fn new(x: usize, y: usize) -> Self {
-        Self { x, y }
+        Self(Point::new(x, y))
+    }
+
+    // Personal perference to use methods rather than tuple index :P
+    pub fn x(&self) -> i32 {
+        self.0.x
+    }
+
+    pub fn y(&self) -> i32 {
+        self.0.y
     }
 }
 

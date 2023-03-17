@@ -4,14 +4,14 @@ use bracket_terminal::prelude::*;
 
 use crate::{start_new_game, Config, RunState, State};
 
-const MAINMENU_OPTIONS: [&'static str; 3] = ["New World", "Load Game", "Options"];
+const MAINMENU_OPTIONS: [&str; 3] = ["New World", "Load Game", "Options"];
 
 pub fn run_menu_systems(state: &mut State, ctx: &mut BTerm, menu_index: usize) -> RunState {
     let mut new_menu_index = menu_index;
     let mut error_message = Option::<String>::None;
 
-    match ctx.key {
-        Some(key) => match key {
+    if let Some(key) = ctx.key {
+        match key {
             VirtualKeyCode::W => {
                 new_menu_index = new_menu_index.saturating_sub(1);
             }
@@ -29,9 +29,9 @@ pub fn run_menu_systems(state: &mut State, ctx: &mut BTerm, menu_index: usize) -
                 }
             }
             _ => (),
-        },
-        None => (),
+        }
     }
+
     draw_menu_screen(menu_index, ctx, error_message, &state.config);
     RunState::MainMenu(MenuIndex(new_menu_index))
 }

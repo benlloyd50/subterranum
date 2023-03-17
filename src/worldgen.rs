@@ -52,14 +52,13 @@ fn brush_spawn(map: &mut Map, rng: &mut RandomNumberGenerator) {
         breeding.push_front((point, 0));
 
         let mut lifetimes = 75;
-        let mut planted = 0;
         while let Some((breeder, priority)) = get_priority(&mut breeding) {
-            let idx = map.point_to_idx(breeder);
+            let idx = breeder.to_index(map.width);
             if map.tiles[idx].is_blocking {
                 // skip blocking tiles to prevent brush in a rock or something
                 continue;
             }
-            planted += 1;
+
             map.tiles[idx] = lush_brush();
             for neighbor in get_neighbors(breeder) {
                 if rng.rand::<f32>() < 0.4 {
@@ -72,7 +71,6 @@ fn brush_spawn(map: &mut Map, rng: &mut RandomNumberGenerator) {
                 break;
             }
         }
-        println!("{:#?}", planted);
     }
 }
 
@@ -86,17 +84,14 @@ fn get_spaced_points(num_points: u32, map: &Map, rng: &mut RandomNumberGenerator
     let mut topy = 0;
     let mut bottomy = map.height as i32 / 2;
 
-    let mut amt = num_points;
-    for i in 0..amt {
+    for i in 0..num_points {
         let x: i32 = rng.range(leftx, rightx);
         let y: i32 = rng.range(topy, bottomy);
 
         let potential = Point::new(x, y);
-        if !map.tiles[map.point_to_idx(potential)].is_blocking {
+        if !map.tiles[potential.to_index(map.width)].is_blocking {
             spaced_points.push(potential);
-        } else {
-            amt += 1
-        }
+        } 
 
         match i % 4 {
             0 => {

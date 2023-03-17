@@ -19,10 +19,8 @@ fn draw_message_box(ctx: &mut BTerm, state: &State, screenheight: usize) {
     ctx.draw_box(0, screenheight - 10, 99, 9, WHITE, BLACK);
 
     let lastmsgidx = state.message_log.len() - 1;
-    let mut msg_offset = 0;
-    for i in lastmsgidx.saturating_sub(7)..=lastmsgidx {
+    for (msg_offset, i) in (lastmsgidx.saturating_sub(7)..=lastmsgidx).enumerate() {
         ctx.print(1, screenheight - 9 + msg_offset, &state.message_log[i].contents);
-        msg_offset += 1;
     }
 }
 
@@ -34,19 +32,15 @@ fn draw_right_box(ctx: &mut BTerm, state: &State, screenheight: usize) {
     ctx.print(right_map_edge_x, 3, format!("Turn: {}", state.turn_counter));
     ctx.print(right_map_edge_x, 4, format!("Seed: {}", state.config.world_seed));
 
-    if let Some(player_pos) = get_player_pos(&state.world, &state.map) {
-        ctx.print(
-            right_map_edge_x,
-            5,
-            format!("X: {}, Y: {}", player_pos.0.x, player_pos.0.y),
-        );
-        ctx.print(right_map_edge_x, 6, format!("Tile Index: {}", player_pos.1));
+    if let Some((pos, idx)) = get_player_pos(&state.world, &state.map) {
+        ctx.print(right_map_edge_x, 5, format!("X: {} Y: {}", pos.x(), pos.y()));
+        ctx.print(right_map_edge_x, 6, format!("Tile Index: {}", idx));
     }
 }
 
 fn get_player_pos(world: &World, map: &Map) -> Option<(Position, usize)> {
-    for (_, player_pos) in world.query::<With<&Position, &Player>>().iter() {
-        return Some((*player_pos, map.xy_to_idx(player_pos.x, player_pos.y)));
+    if let Some((_, player_pos)) = world.query::<With<&Position, &Player>>().iter().next() {
+        return Some((player_pos.clone(), player_pos.0.to_index(map.width)));
     }
     None
 }

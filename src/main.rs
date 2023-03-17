@@ -1,4 +1,4 @@
-use std::{fs, process::exit};
+use std::{cmp::max, fs, process::exit};
 
 use bracket_terminal::prelude::*;
 use gui::draw_gui;
@@ -51,7 +51,7 @@ impl State {
         update_vision(self);
 
         render_map(ctx, &self.map);
-        render_entities(ctx, &self);
+        render_entities(ctx, self);
 
         draw_gui(ctx, self);
     }
@@ -70,39 +70,39 @@ impl State {
             if let Some(key) = ctx.key {
                 match key {
                     VirtualKeyCode::W | VirtualKeyCode::K => {
-                        dest_pos.y = dest_pos.y.saturating_sub(1);
+                        dest_pos.0.y = max(dest_pos.y() - 1, 0);
                         should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::S | VirtualKeyCode::J => {
-                        dest_pos.y += 1;
+                        dest_pos.0.y += 1;
                         should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::A | VirtualKeyCode::H => {
-                        dest_pos.x = dest_pos.x.saturating_sub(1);
+                        dest_pos.0.x = max(dest_pos.x() - 1, 0);
                         should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::D | VirtualKeyCode::L => {
-                        dest_pos.x += 1;
+                        dest_pos.0.x += 1;
                         should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::Y => {
-                        dest_pos.x = dest_pos.x.saturating_sub(1);
-                        dest_pos.y = dest_pos.y.saturating_sub(1);
+                        dest_pos.0.x = max(dest_pos.x() - 1, 0);
+                        dest_pos.0.y = max(dest_pos.y() - 1, 0);
                         should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::U => {
-                        dest_pos.x += 1;
-                        dest_pos.y = dest_pos.y.saturating_sub(1);
+                        dest_pos.0.x += 1;
+                        dest_pos.0.y = max(dest_pos.y() - 1, 0);
                         should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::N => {
-                        dest_pos.x = dest_pos.x.saturating_sub(1);
-                        dest_pos.y += 1;
+                        dest_pos.0.x = max(dest_pos.x() - 1, 0);
+                        dest_pos.0.y += 1;
                         should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::M => {
-                        dest_pos.x += 1;
-                        dest_pos.y += 1;
+                        dest_pos.0.x += 1;
+                        dest_pos.0.y += 1;
                         should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::Space => {
@@ -160,7 +160,12 @@ fn main() -> BError {
         .with_fullscreen(config.fullscreen)
         .with_dimensions(config.screensize_x, config.screensize_y)
         .with_tile_dimensions(config.font_size, config.font_size)
-        .with_font_bg(&config.font_file, config.font_size, config.font_size, RGB::from_u8(255, 0, 255))
+        .with_font_bg(
+            &config.font_file,
+            config.font_size,
+            config.font_size,
+            RGB::from_u8(255, 0, 255),
+        )
         .with_simple_console(config.screensize_x, config.screensize_y, &config.font_file)
         .build()?;
 

@@ -1,6 +1,6 @@
-use bracket_pathfinding::prelude::{a_star_search, DistanceAlg, Point};
+use bracket_pathfinding::prelude::{a_star_search, DistanceAlg};
 use rand::random;
-use std::fmt;
+use std::{cmp::max, fmt};
 
 use hecs::{With, World};
 
@@ -12,24 +12,22 @@ use crate::{
 };
 
 pub fn handle_monster_turns(world: &mut World, map: &mut Map, msg_log: &mut Vec<Message>) {
-    for (_, player_pos) in world.query::<With<&Position, &Player>>().iter() {
-        let player_idx = map.xy_to_idx(player_pos.x, player_pos.y);
-        let player_point = Point::new(player_pos.x, player_pos.y);
+    if let Some((_, player_pos)) = world.query::<With<&Position, &Player>>().iter().next() {
+        let player_idx = player_pos.0.to_index(map.width);
 
-        for (_, (mut pos, mut view, breed)) in world.query::<(&mut Position, &mut ViewShed, &Breed)>().iter() {
-            let dist_to_player = DistanceAlg::Pythagoras.distance2d(player_point, Point::new(pos.x, pos.y));
+        for (_, (pos, view, breed)) in world.query::<(&mut Position, &mut ViewShed, &Breed)>().iter() {
+            let dist_to_player = DistanceAlg::Pythagoras.distance2d(player_pos.0, pos.0);
 
             if dist_to_player < 1.5 {
                 msg_log.push(Message::new(format!("{}: Poke", breed.name)));
                 continue;
             }
 
-            if view.visible_tiles.contains(&player_point) {
-                let path = a_star_search(map.xy_to_idx(pos.x, pos.y), player_idx, map);
+            if view.visible_tiles.contains(&player_pos.0) {
+                let path = a_star_search(pos.0.to_index(map.width), player_idx, map);
                 if path.success && path.steps.len() > 1 {
-
                     let next_pos = map.idx_to_pos(path.steps[1]);
-                    if try_move(map, next_pos, &mut pos, &mut view) {
+                    if try_move(map, next_pos, pos, view) {
                         continue;
                     }
                 }
@@ -37,14 +35,22 @@ pub fn handle_monster_turns(world: &mut World, map: &mut Map, msg_log: &mut Vec<
 
             let mut new_pos = pos.clone();
             match random::<u8>() % 4 {
-                0 => { new_pos.x += 1; }
-                1 => { new_pos.x = new_pos.x.saturating_sub(1); }
-                2 => { new_pos.y += 1; }
-                3 => { new_pos.y = new_pos.y.saturating_sub(1); }
+                0 => {
+                    new_pos.0.x += 1;
+                }
+                1 => {
+                    new_pos.0.x = max(new_pos.x() - 1, 0);
+                }
+                2 => {
+                    new_pos.0.y += 1;
+                }
+                3 => {
+                    new_pos.0.y = max(new_pos.y() - 1, 0);
+                }
                 _ => {}
             }
             msg_log.push(Message::new(format!("{}: I'm moving freely", breed.name)));
-            try_move(map, new_pos, &mut pos, view);
+            try_move(map, new_pos, pos, view);
         }
     }
 }
