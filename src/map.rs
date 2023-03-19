@@ -14,6 +14,7 @@ pub struct Map {
     pub discovered: Vec<bool>,
     pub width: usize,
     pub height: usize,
+    pub depth: usize,
 }
 
 #[derive(Copy, Clone)]
@@ -39,6 +40,7 @@ impl Map {
             discovered: Vec::new(),
             width: 100,
             height: 70,
+            depth: 0,
         }
     }
 

@@ -21,6 +21,7 @@ pub fn wall_stone() -> WorldTile {
     }
 }
 
+#[allow(dead_code)]
 pub fn deep_water() -> WorldTile {
     WorldTile {
         is_transparent: true,

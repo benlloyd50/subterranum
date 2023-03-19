@@ -1,14 +1,19 @@
+use crate::actor::Position;
 use crate::map::{Map, MAP_HEIGHT, MAP_WIDTH};
+use crate::prefab::{load_rex_room, xy_to_idx};
 use crate::tiles::*;
 use bracket_noise::prelude::*;
 use bracket_pathfinding::prelude::Point;
 use bracket_random::prelude::*;
+use bracket_terminal::prelude::to_cp437;
 use std::collections::VecDeque;
 
-pub fn generate_map(seed: u64) -> Map {
+
+pub fn generate_map(seed: u64) -> (Map, Position) {
     let width = 100;
     let height = 70;
 
+    let mut player_spawn = Position::new(0, 0);
     // create the map for the overworld
     let mut map = Map {
         tiles: vec![wall_stone(); width * height],
@@ -16,34 +21,68 @@ pub fn generate_map(seed: u64) -> Map {
         discovered: vec![false; width * height],
         width,
         height,
+        depth: 0,
     };
 
-    let mut rng = RandomNumberGenerator::seeded(seed);
-    // Perlin noise suited for terrain
-    let terrain_noise = terrain_perlin(seed);
+    // let mut rng = RandomNumberGenerator::seeded(seed);
+    create_caverns(&mut map, seed);
+    if map.depth == 0 {
+        player_spawn = create_entrance(&mut map, seed);
+    }
 
-    for x in 0..map.width {
-        for y in 0..map.height {
-            let mut perlin_value = terrain_noise.get_noise(x as f32 / 64., y as f32 / 64.);
+
+    // brush_spawn(&mut map, &mut rng);
+
+    (map, player_spawn)
+}
+
+fn create_caverns(map: &mut Map, seed: u64) {
+    let cave_noise = cave_perlin(seed);
+
+    for x in 1..map.width-1 {
+        for y in 1..map.height-1 {
+            let mut perlin_value = cave_noise.get_noise(x as f32 / 64., y as f32 / 64.);
             perlin_value = (perlin_value + 1.0) * 0.5;
 
             let idx = map.xy_to_idx(x, y);
-            if perlin_value < 0.3 {
-                map.tiles[idx] = deep_water();
-            } else if perlin_value < 0.75 {
+            if perlin_value > 0.65 {
                 map.tiles[idx] = floor_stone();
-            } else {
-                map.tiles[idx] = wall_stone();
             }
         }
     }
+}
 
-    brush_spawn(&mut map, &mut rng);
+fn create_entrance(map: &mut Map, _seed: u64) -> Position {
+    // Basically want to pick a side of the map and place something down
+    let starting_x = 10;
+    let starting_y = 0;
 
-    map
+    let entrance_prefab = load_rex_room();
+    let width = entrance_prefab.width;
+
+    let mut player_spawn = Position::new(0, 0);
+
+    for i in starting_x..starting_x + entrance_prefab.width {
+        for j in starting_y..starting_y + entrance_prefab.height {
+            let idx = map.xy_to_idx(i, j);
+            let prefab_tile = entrance_prefab.structure[xy_to_idx(i - 10, j, width)];
+
+            if prefab_tile.sprite.glyph == to_cp437('P') {
+                player_spawn = map.idx_to_pos(idx);
+                println!("{:?}", player_spawn);
+                map.tiles[idx] = floor_stone();
+                continue;
+            }
+
+            map.tiles[idx] = prefab_tile;
+        }
+    }
+
+    player_spawn
 }
 
 /// Spawns multiple brushes
+#[allow(dead_code)]
 fn brush_spawn(map: &mut Map, rng: &mut RandomNumberGenerator) {
     // Get 4 starting(breeding) points
     let starting_points = get_spaced_points(10, map, rng);
@@ -160,16 +199,17 @@ mod tests {
         ];
         assert_eq!(get_neighbors(Point::new(1, 1)), neighbors);
     }
+
 }
 
-fn terrain_perlin(seed: u64) -> FastNoise {
+fn cave_perlin(seed: u64) -> FastNoise {
     let mut noise = FastNoise::seeded(seed);
     noise.set_noise_type(NoiseType::SimplexFractal);
     noise.set_fractal_type(FractalType::FBM);
-    noise.set_fractal_octaves(6);
-    noise.set_fractal_gain(0.05);
-    noise.set_fractal_lacunarity(0.7);
-    noise.set_frequency(1.9);
+    noise.set_fractal_octaves(2);
+    noise.set_fractal_gain(0.02);
+    noise.set_fractal_lacunarity(0.5);
+    noise.set_frequency(2.5);
 
     noise
 }
