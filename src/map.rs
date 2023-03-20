@@ -1,6 +1,6 @@
 /* Map.rs is the map generation code and data structures to hold information about the map
  */
-use crate::{actor::Position, item::Item, CharSprite};
+use crate::{actor::Position, item::Item, CharSprite, Config};
 use bracket_pathfinding::prelude::{Algorithm2D, BaseMap, DistanceAlg, SmallVec};
 use bracket_terminal::prelude::{BTerm, Point};
 
@@ -118,15 +118,23 @@ impl Algorithm2D for Map {
 }
 
 /// Renders the world from the player perspective
-pub fn render_map(ctx: &mut BTerm, map: &Map) {
+pub fn render_map(ctx: &mut BTerm, map: &Map, config: &Config) {
     let mut x = 0;
     let mut y = 0;
     for tile in map.tiles.iter() {
-        // if map.visible[xy_to_idx(x, y)] {
-        ctx.set(x, y, tile.sprite.fg, tile.sprite.bg, tile.sprite.glyph);
-        // } else if map.discovered[xy_to_idx(x, y)]{
-        //     ctx.set(x, y, tile.sprite.fg.to_greyscale(), tile.sprite.bg.to_greyscale(), tile.sprite.glyph);
-        // }
+        if config.dev_mode {
+            ctx.set(x, y, tile.sprite.fg, tile.sprite.bg, tile.sprite.glyph);
+        } else if map.visible[map.xy_to_idx(x, y)] {
+            ctx.set(x, y, tile.sprite.fg, tile.sprite.bg, tile.sprite.glyph);
+        } else if map.discovered[map.xy_to_idx(x, y)] {
+            ctx.set(
+                x,
+                y,
+                tile.sprite.fg.to_greyscale(),
+                tile.sprite.bg.to_greyscale(),
+                tile.sprite.glyph,
+            );
+        }
 
         x += 1;
         if x >= MAP_WIDTH {

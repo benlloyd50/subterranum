@@ -9,8 +9,8 @@ mod map;
 mod menu;
 mod messagelog;
 mod monster;
-mod worldgen;
 mod prefab;
+mod worldgen;
 use map::{render_map, Map};
 use worldgen::generate_map;
 mod fov;
@@ -51,7 +51,7 @@ impl State {
         ctx.cls();
         update_vision(self);
 
-        render_map(ctx, &self.map);
+        render_map(ctx, &self.map, &self.config);
         render_entities(ctx, self);
 
         draw_gui(ctx, self);
@@ -149,6 +149,8 @@ impl GameState for State {
 
 bracket_terminal::embedded_resource!(TILE_FONT, "../resources/RDE.png");
 bracket_terminal::embedded_resource!(CAVE_ENTRANCE, "../resources/rex/cave_entrance.xp");
+bracket_terminal::embedded_resource!(INTRO_SCREEN, "../resources/rex/intro_screen.xp");
+bracket_terminal::embedded_resource!(MENU_OPTIONS, "../resources/rex/options_box.xp");
 
 fn main() -> BError {
     // Reads in a config file to setup the game
@@ -156,6 +158,8 @@ fn main() -> BError {
     let config: Config = toml::from_str(&contents).unwrap();
 
     bracket_terminal::link_resource!(CAVE_ENTRANCE, "../resources/rex/cave_entrance.xp");
+    bracket_terminal::link_resource!(INTRO_SCREEN, "../resources/rex/intro_screen.xp");
+    bracket_terminal::link_resource!(MENU_OPTIONS, "../resources/rex/options_box.xp");
 
     // Setup terminal renderer
     bracket_terminal::link_resource!(TILE_FONT, "resources/RDE.png");
@@ -164,7 +168,12 @@ fn main() -> BError {
         .with_fullscreen(config.fullscreen)
         .with_dimensions(config.screensize_x, config.screensize_y)
         .with_tile_dimensions(config.font_size, config.font_size)
-        .with_font_bg( &config.font_file, config.font_size, config.font_size, RGB::from_u8(255, 0, 255),)
+        .with_font_bg(
+            &config.font_file,
+            config.font_size,
+            config.font_size,
+            RGB::from_u8(255, 0, 255),
+        )
         .with_simple_console(config.screensize_x, config.screensize_y, &config.font_file)
         .build()?;
 
@@ -213,12 +222,7 @@ pub fn start_new_game(world: &mut World, seed: u64) -> Map {
 
     let (map, player_start) = generate_map(seed);
 
-    world.spawn((
-        player_start,
-        CharSprite::new('☺', CYAN, None),
-        Player,
-        ViewShed::new(8),
-    ));
+    world.spawn((player_start, CharSprite::new('☺', CYAN, None), Player, ViewShed::new(8)));
 
     map
 }

@@ -1,6 +1,7 @@
 use bracket_pathfinding::prelude::*;
+use hecs::With;
 
-use crate::{Position, State};
+use crate::{Player, Position, State};
 
 pub struct ViewShed {
     pub visible_tiles: Vec<Point>,
@@ -19,7 +20,7 @@ impl ViewShed {
 }
 
 pub fn update_vision(state: &mut State) {
-    for (_, (viewshed, pos)) in state.world.query::<(&mut ViewShed, &Position)>().iter() {
+    for (_, (viewshed, pos)) in state.world.query::<With<(&mut ViewShed, &Position), &Player>>().iter() {
         if !viewshed.dirty {
             return;
         }

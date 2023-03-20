@@ -30,9 +30,10 @@ pub fn run_menu_systems(state: &mut State, ctx: &mut BTerm, menu_index: usize) -
             }
             _ => (),
         }
+        ctx.cls();
     }
 
-    draw_menu_screen(menu_index, ctx, error_message, &state.config);
+    draw_menu_screen(new_menu_index, ctx, error_message, &state.config);
     RunState::MainMenu(MenuIndex(new_menu_index))
 }
 
@@ -40,19 +41,36 @@ pub fn draw_menu_screen(active_idx: usize, ctx: &mut BTerm, error_message: Optio
     let screen_size_x = cfg.screensize_x;
     let screen_size_y = cfg.screensize_y;
 
-    ctx.draw_box(0, 0, screen_size_x - 1, screen_size_y - 1, WHITE, BLACK);
-    ctx.print(20, 10, format!("Main Menu Index: {}", active_idx));
-    ctx.print(8, screen_size_y / 2 - 5, "Terra Incognita");
+    if cfg.dev_mode {
+        // Debug information
+        ctx.print(20, 10, format!("Main Menu Index: {}", active_idx));
+    }
 
     if let Some(err) = error_message {
-        ctx.print(8, screen_size_y / 2 + 5, err);
+        ctx.print(10, screen_size_y / 2 + 9, err);
     }
+
+    let xp_file = XpFile::from_resource("../resources/rex/intro_screen.xp").unwrap();
+    ctx.render_xp_sprite(&xp_file, 2, 17);
+    ctx.print(4, 37, "Developed By: Benjamin Lloyd");
+    ctx.draw_hollow_box(0, 0, screen_size_x - 1, screen_size_y - 1, WHITE, BLACK);
+
+    draw_option_box(ctx, screen_size_y, active_idx);
+}
+
+/// Draws a rex paint box and adds text to display options for the player to pick
+fn draw_option_box(ctx: &mut BTerm, screen_size_y: usize, active_idx: usize) {
+    let options_anchor = screen_size_y / 2 + 3;
+    let xp_file = XpFile::from_resource("../resources/rex/options_box.xp").unwrap();
+    ctx.render_xp_sprite(&xp_file, 10, options_anchor as i32 - 2);
 
     for (idx, choice) in MAINMENU_OPTIONS.iter().enumerate() {
         if idx == active_idx {
-            ctx.print_color(8, screen_size_y / 2 + idx, BLACK, WHITE, choice);
+            ctx.print_color(18, options_anchor + idx, BLACK, WHITE, choice);
+            ctx.set(17, options_anchor + idx, LIGHT_BLUE, BLACK, to_cp437('►'));
+            ctx.set(27, options_anchor + idx, LIGHT_BLUE, BLACK, to_cp437('◄'));
         } else {
-            ctx.print_color(8, screen_size_y / 2 + idx, WHITE, BLACK, choice);
+            ctx.print_color(18, options_anchor + idx, WHITE, BLACK, choice);
         }
     }
 }

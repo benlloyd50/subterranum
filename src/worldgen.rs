@@ -8,7 +8,6 @@ use bracket_random::prelude::*;
 use bracket_terminal::prelude::to_cp437;
 use std::collections::VecDeque;
 
-
 pub fn generate_map(seed: u64) -> (Map, Position) {
     let width = 100;
     let height = 70;
@@ -26,10 +25,11 @@ pub fn generate_map(seed: u64) -> (Map, Position) {
 
     // let mut rng = RandomNumberGenerator::seeded(seed);
     create_caverns(&mut map, seed);
+
+    seal_cavern(&mut map);
     if map.depth == 0 {
         player_spawn = create_entrance(&mut map, seed);
     }
-
 
     // brush_spawn(&mut map, &mut rng);
 
@@ -39,8 +39,8 @@ pub fn generate_map(seed: u64) -> (Map, Position) {
 fn create_caverns(map: &mut Map, seed: u64) {
     let cave_noise = cave_perlin(seed);
 
-    for x in 1..map.width-1 {
-        for y in 1..map.height-1 {
+    for x in 1..map.width - 1 {
+        for y in 1..map.height - 1 {
             let mut perlin_value = cave_noise.get_noise(x as f32 / 64., y as f32 / 64.);
             perlin_value = (perlin_value + 1.0) * 0.5;
 
@@ -52,12 +52,30 @@ fn create_caverns(map: &mut Map, seed: u64) {
     }
 }
 
+/// Goes around the edge of the cave and makes the edges unbreakable
+fn seal_cavern(map: &mut Map) {
+    for cx in 0..MAP_WIDTH {
+        let idx = map.xy_to_idx(cx, 0);
+        map.tiles[idx] = wall_adamnatite();
+        let idx = map.xy_to_idx(cx, map.height - 1);
+        map.tiles[idx] = wall_adamnatite();
+    }
+
+    for cy in 0..MAP_HEIGHT {
+        let idx = map.xy_to_idx(0, cy);
+        map.tiles[idx] = wall_adamnatite();
+        let idx = map.xy_to_idx(map.width - 1, cy);
+        map.tiles[idx] = wall_adamnatite();
+    }
+}
+
 fn create_entrance(map: &mut Map, _seed: u64) -> Position {
     // Basically want to pick a side of the map and place something down
+
     let starting_x = 10;
     let starting_y = 0;
 
-    let entrance_prefab = load_rex_room();
+    let entrance_prefab = load_rex_room("cave_entrance");
     let width = entrance_prefab.width;
 
     let mut player_spawn = Position::new(0, 0);
@@ -69,7 +87,6 @@ fn create_entrance(map: &mut Map, _seed: u64) -> Position {
 
             if prefab_tile.sprite.glyph == to_cp437('P') {
                 player_spawn = map.idx_to_pos(idx);
-                println!("{:?}", player_spawn);
                 map.tiles[idx] = floor_stone();
                 continue;
             }
@@ -130,7 +147,7 @@ fn get_spaced_points(num_points: u32, map: &Map, rng: &mut RandomNumberGenerator
         let potential = Point::new(x, y);
         if !map.tiles[potential.to_index(map.width)].is_blocking {
             spaced_points.push(potential);
-        } 
+        }
 
         match i % 4 {
             0 => {
@@ -199,7 +216,6 @@ mod tests {
         ];
         assert_eq!(get_neighbors(Point::new(1, 1)), neighbors);
     }
-
 }
 
 fn cave_perlin(seed: u64) -> FastNoise {

@@ -21,6 +21,19 @@ pub fn wall_stone() -> WorldTile {
     }
 }
 
+pub fn wall_adamnatite() -> WorldTile {
+    WorldTile {
+        is_transparent: false,
+        is_blocking: true,
+        sprite: CharSprite {
+            glyph: to_cp437('#'),
+            fg: RGB::named(WHITESMOKE),
+            bg: RGB::named(PURPLE2),
+        },
+        destructible: Destructible::Unbreakable,
+    }
+}
+
 #[allow(dead_code)]
 pub fn deep_water() -> WorldTile {
     WorldTile {
