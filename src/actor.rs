@@ -30,10 +30,8 @@ pub fn try_move(map: &mut Map, dest_tile: Position, pos: &mut Position, view: &m
                 } => {
                     health -= 1;
                     tile.destructible = Destructible::ByHand { health, dropped_item };
-                    println!("Hit grass for 1, hp left {}", health);
                     if health == 0 {
                         map.tiles[idx] = floor_grass();
-                        println!("Hit grass for 1, hp left {}, it was replaced", health);
                     }
                 }
                 Destructible::Unbreakable => {}

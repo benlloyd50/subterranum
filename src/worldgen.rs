@@ -8,11 +8,11 @@ use bracket_random::prelude::*;
 use bracket_terminal::prelude::to_cp437;
 use std::collections::VecDeque;
 
+
 pub fn generate_map(seed: u64) -> (Map, Position) {
     let width = 100;
     let height = 70;
 
-    let mut player_spawn = Position::new(0, 0);
     // create the map for the overworld
     let mut map = Map {
         tiles: vec![wall_stone(); width * height],
@@ -23,15 +23,18 @@ pub fn generate_map(seed: u64) -> (Map, Position) {
         depth: 0,
     };
 
-    // let mut rng = RandomNumberGenerator::seeded(seed);
+    let mut rng = RandomNumberGenerator::seeded(seed);
     create_caverns(&mut map, seed);
 
-    seal_cavern(&mut map);
-    if map.depth == 0 {
-        player_spawn = create_entrance(&mut map, seed);
-    }
+    let player_spawn = if map.depth == 0 {
+        create_entrance(&mut map, &mut rng)
+    } else {
+        Position::new(0, 0)
+    };
 
-    // brush_spawn(&mut map, &mut rng);
+    seal_cavern(&mut map);
+    brush_spawn(&mut map, &mut rng);
+
 
     (map, player_spawn)
 }
@@ -45,7 +48,7 @@ fn create_caverns(map: &mut Map, seed: u64) {
             perlin_value = (perlin_value + 1.0) * 0.5;
 
             let idx = map.xy_to_idx(x, y);
-            if perlin_value > 0.65 {
+            if perlin_value > 0.6 && perlin_value < 0.9 {
                 map.tiles[idx] = floor_stone();
             }
         }
@@ -69,22 +72,21 @@ fn seal_cavern(map: &mut Map) {
     }
 }
 
-fn create_entrance(map: &mut Map, _seed: u64) -> Position {
-    // Basically want to pick a side of the map and place something down
-
-    let starting_x = 10;
-    let starting_y = 0;
-
+fn create_entrance(map: &mut Map, rng: &mut RandomNumberGenerator) -> Position {
     let entrance_prefab = load_rex_room("cave_entrance");
-    let width = entrance_prefab.width;
+
+    let starting_x = rng.range(10, map.width - entrance_prefab.width);
+    let starting_y = 0;
 
     let mut player_spawn = Position::new(0, 0);
 
-    for i in starting_x..starting_x + entrance_prefab.width {
-        for j in starting_y..starting_y + entrance_prefab.height {
-            let idx = map.xy_to_idx(i, j);
-            let prefab_tile = entrance_prefab.structure[xy_to_idx(i - 10, j, width)];
+    for x in starting_x..starting_x + entrance_prefab.width {
+        for y in starting_y..starting_y + entrance_prefab.height {
+            let idx = map.xy_to_idx(x, y);
+            let prefab_idx = xy_to_idx(x - starting_x, y, entrance_prefab.width);
+            let prefab_tile = entrance_prefab.structure[prefab_idx];
 
+            // checks for a special player spawn tile in the prefab
             if prefab_tile.sprite.glyph == to_cp437('P') {
                 player_spawn = map.idx_to_pos(idx);
                 map.tiles[idx] = floor_stone();
@@ -98,8 +100,7 @@ fn create_entrance(map: &mut Map, _seed: u64) -> Position {
     player_spawn
 }
 
-/// Spawns multiple brushes
-#[allow(dead_code)]
+/// Spawns multiple brushes on floor tiles
 fn brush_spawn(map: &mut Map, rng: &mut RandomNumberGenerator) {
     // Get 4 starting(breeding) points
     let starting_points = get_spaced_points(10, map, rng);

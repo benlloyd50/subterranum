@@ -4,7 +4,6 @@ use crate::{actor::Position, item::Item, CharSprite, Config};
 use bracket_pathfinding::prelude::{Algorithm2D, BaseMap, DistanceAlg, SmallVec};
 use bracket_terminal::prelude::{BTerm, Point};
 
-// TODO: turn these into variables on map and impl fn on to map if they need this
 pub const MAP_WIDTH: usize = 100;
 pub const MAP_HEIGHT: usize = 70;
 
