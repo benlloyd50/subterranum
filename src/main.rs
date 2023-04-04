@@ -220,7 +220,7 @@ pub fn start_new_game(world: &mut World, seed: u64) -> Map {
 
     world.spawn((Position::new(10, 12), CharSprite::new('@', YELLOW, None)));
 
-    let (map, player_start) = generate_map(seed);
+    let (map, player_start) = generate_map(seed, 0);
 
     world.spawn((player_start, CharSprite::new('☺', CYAN, None), Player, ViewShed::new(8)));
 

@@ -21,7 +21,7 @@ impl WorldRoom {
     }
 }
 
-pub fn generate_map(seed: u64) -> (Map, Position) {
+pub fn generate_map(seed: u64, depth: usize) -> (Map, Position) {
     let width = 100;
     let height = 70;
 
@@ -33,7 +33,7 @@ pub fn generate_map(seed: u64) -> (Map, Position) {
         rooms: Vec::new(),
         width,
         height,
-        depth: 0,
+        depth,
     };
 
     let mut rng = RandomNumberGenerator::seeded(seed);
@@ -46,17 +46,21 @@ pub fn generate_map(seed: u64) -> (Map, Position) {
         Position::new(0, 0)
     };
 
-    update_rooms(&mut map);
+    cull_rooms(&mut map);
     remove_small_rooms(&mut map, 10);
 
     debug_map_rooms(&mut map);
+
+    place_down_stairs(&mut map, &mut rng);
 
     // brush_spawn(&mut map, &mut rng);
 
     (map, player_spawn)
 }
 
-/// displays each room's floor as a single hex digit 1-f, skups any rooms past the 16th for now
+/// displays each room's floor as a single hex digit 1-f, skips any rooms past the 16th for now
+/// this affects the map by setting each ground tile to a number, maybe this could be done on the
+/// rendering side instead
 fn debug_map_rooms(map: &mut Map) {
     let mut room_num = 0;
     let symbols = (b'0'..=b'9')
@@ -72,6 +76,13 @@ fn debug_map_rooms(map: &mut Map) {
 
         room_num += 1;
     }
+}
+
+fn place_down_stairs(map: &mut Map, rng: &mut RandomNumberGenerator) {
+    let room_idx = rng.range(0, map.rooms.len());
+    let room_pos_idx = rng.range(0, map.rooms[room_idx].tiles.len());
+    let stair_pos = map.rooms[room_idx].tiles[room_pos_idx].to_index(map.width);
+    map.tiles[stair_pos] = down_stairs();
 }
 
 fn create_caverns(map: &mut Map, seed: u64) {
@@ -212,7 +223,7 @@ fn get_spaced_points(num_points: u32, map: &Map, rng: &mut RandomNumberGenerator
 
 /// scans the map and collects all "bodies" of land as a room, if every room is connected then
 /// there will only be one room
-fn update_rooms(map: &mut Map) {
+fn cull_rooms(map: &mut Map) {
     let mut visited = vec![false; map.width * map.height];
 
     for i in 0..map.tiles.len() {

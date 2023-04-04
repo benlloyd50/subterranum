@@ -5,6 +5,17 @@ use crate::{
 };
 use bracket_terminal::prelude::*;
 
+/* Tiles have lots of different kind of information
+ * Type 1 - Almost normal behavior for a tile since it is on all of them
+ * - Breakble - By what, how many hits before broken, does it drop anything when broken
+ * 
+ * Type 2 - Exceptional behavior, stored on a few tiles/items
+ * - Door - state of the door, locked?
+ * - Stairs
+ * - Examinable - description of the tile, 
+ */
+
+
 pub fn wall_stone() -> WorldTile {
     WorldTile {
         is_transparent: false,
@@ -30,6 +41,15 @@ pub fn wall_adamnatite() -> WorldTile {
             fg: RGB::named(WHITESMOKE),
             bg: RGB::named(PURPLE2),
         },
+        destructible: Destructible::Unbreakable,
+    }
+}
+
+pub fn down_stairs() -> WorldTile {
+    WorldTile {
+        is_transparent: false,
+        is_blocking: false,
+        sprite: CharSprite::new('>', WHITESMOKE, None),
         destructible: Destructible::Unbreakable,
     }
 }
