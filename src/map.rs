@@ -1,6 +1,6 @@
 /* Map.rs is the map generation code and data structures to hold information about the map
  */
-use crate::{actor::Position, item::Item, CharSprite, Config};
+use crate::{actor::Position, item::Item, CharSprite, Config, worldgen::WorldRoom};
 use bracket_pathfinding::prelude::{Algorithm2D, BaseMap, DistanceAlg, SmallVec};
 use bracket_terminal::prelude::{BTerm, Point};
 
@@ -9,12 +9,14 @@ pub const MAP_HEIGHT: usize = 70;
 
 pub struct Map {
     pub tiles: Vec<WorldTile>,
+    pub rooms: Vec<WorldRoom>,
     pub visible: Vec<bool>,
     pub discovered: Vec<bool>,
     pub width: usize,
     pub height: usize,
     pub depth: usize,
 }
+
 
 #[derive(Copy, Clone)]
 pub struct WorldTile {
@@ -35,6 +37,7 @@ impl Map {
     pub fn empty() -> Self {
         Self {
             tiles: Vec::new(),
+            rooms: Vec::new(),
             visible: Vec::new(),
             discovered: Vec::new(),
             width: 100,

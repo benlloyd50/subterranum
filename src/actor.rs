@@ -94,4 +94,8 @@ impl CharSprite {
             },
         }
     }
+
+    pub fn eq(&self, other: Self) -> bool {
+        self.glyph == other.glyph && self.fg == other.fg && self.bg == other.bg
+    }
 }

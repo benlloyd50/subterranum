@@ -38,7 +38,6 @@ pub fn generate_map(seed: u64) -> (Map, Position) {
 
     let mut rng = RandomNumberGenerator::seeded(seed);
     create_caverns(&mut map, seed);
-    seal_cavern(&mut map);
 
     let player_spawn = if map.depth == 0 {
         create_entrance(&mut map, &mut rng)
@@ -46,9 +45,9 @@ pub fn generate_map(seed: u64) -> (Map, Position) {
         Position::new(0, 0)
     };
 
-    update_rooms(&mut map);
-    remove_small_rooms(&mut map, 10);
-
+    seal_cavern(&mut map);
+    map.rooms = get_rooms(&mut map);
+    remove_small_rooms(&mut map);
     debug_map_rooms(&mut map);
 
     // brush_spawn(&mut map, &mut rng);
@@ -212,7 +211,8 @@ fn get_spaced_points(num_points: u32, map: &Map, rng: &mut RandomNumberGenerator
 
 /// scans the map and collects all "bodies" of land as a room, if every room is connected then
 /// there will only be one room
-fn update_rooms(map: &mut Map) {
+fn get_rooms(map: &mut Map) -> Vec<WorldRoom> {
+    let mut rooms = Vec::new();
     let mut visited = vec![false; map.width * map.height];
 
     for i in 0..map.tiles.len() {
@@ -227,23 +227,19 @@ fn update_rooms(map: &mut Map) {
 
         let room = flood_fill(map.idx_to_point(i), map, &mut visited);
 
-        map.rooms.push(room);
+        rooms.push(room);
     }
+
+    rooms
 }
 
 /// Removes rooms that are under a certain size
 fn remove_small_rooms(map: &mut Map, min_size: usize) {
-    let mut i = 0;
-    loop {
-        if map.rooms[i].tiles.len() < min_size { // remove small rooms
-            let room = map.rooms.remove(i);
+    for i in map.rooms.len() {
+            map.rooms.remove(index);
+        if room.tiles.len() < min_size { // remove small rooms
             for pt in &room.tiles {
                 map.tiles[pt.to_index(map.width)] = wall_stone();
-            }
-        } else {
-            i += 1;
-            if i >= map.rooms.len() {
-                break;
             }
         }
     }
