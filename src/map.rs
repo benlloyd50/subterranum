@@ -1,6 +1,6 @@
 /* Map.rs is the map generation code and data structures to hold information about the map
  */
-use crate::{actor::Position, item::Item, CharSprite, Config, worldgen::WorldRoom};
+use crate::{actor::Position, item::Item, worldgen::WorldRoom, CharSprite, Config};
 use bracket_pathfinding::prelude::{Algorithm2D, BaseMap, DistanceAlg, SmallVec};
 use bracket_terminal::prelude::{BTerm, Point};
 
@@ -16,7 +16,6 @@ pub struct Map {
     pub height: usize,
     pub depth: usize,
 }
-
 
 #[derive(Copy, Clone)]
 pub struct WorldTile {

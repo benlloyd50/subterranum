@@ -1,9 +1,12 @@
-use std::{cmp::max, fs, process::exit};
-
 use bracket_terminal::prelude::*;
+use data_read::named_monster_builder;
 use gui::draw_gui;
 use hecs::*;
+use serde::Deserialize;
+use std::{cmp::max, fs, process::exit};
 
+mod data_read;
+use data_read::ENTITY_DB;
 mod gui;
 mod map;
 mod menu;
@@ -22,11 +25,10 @@ use actor::{render_entities, try_move, CharSprite, Player, Position};
 use menu::run_menu_systems;
 use messagelog::Message;
 use monster::handle_monster_turns;
-use serde::Deserialize;
 
 use crate::{
+    data_read::load_data_for_entities,
     menu::MenuIndex,
-    monster::{Breed, MonsterType},
 };
 
 pub struct State {
@@ -153,6 +155,8 @@ bracket_terminal::embedded_resource!(INTRO_SCREEN, "../resources/rex/intro_scree
 bracket_terminal::embedded_resource!(MENU_OPTIONS, "../resources/rex/options_box.xp");
 
 fn main() -> BError {
+    load_data_for_entities();
+
     // Reads in a config file to setup the game
     let contents: String = fs::read_to_string("resources/config.toml")?;
     let config: Config = toml::from_str(&contents).unwrap();
@@ -211,18 +215,17 @@ fn main() -> BError {
 
 /// Creates a new map and setups world for the start of a fresh run
 pub fn start_new_game(world: &mut World, seed: u64) -> Map {
-    world.spawn((
-        Breed::new(MonsterType::Centipede),
-        CharSprite::new('c', ROSY_BROWN, None),
-        Position::new(9, 10),
-        ViewShed::new(7),
-    ));
-
-    world.spawn((Position::new(10, 12), CharSprite::new('@', YELLOW, None)));
+    let cb = named_monster_builder(&ENTITY_DB.lock().unwrap(), "Centipede", Position::new(5, 9));
+    if let Some(mut cb) = cb {
+        world.spawn(cb.build());
+    }
 
     let (map, player_start) = generate_map(seed, 0);
 
-    world.spawn((player_start, CharSprite::new('☺', CYAN, None), Player, ViewShed::new(8)));
+    let player_builder = named_monster_builder(&ENTITY_DB.lock().unwrap(), "Player", player_start);
+    if let Some(mut pb) = player_builder {
+        world.spawn(pb.build());
+    }
 
     map
 }

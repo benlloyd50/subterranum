@@ -5,12 +5,12 @@ use crate::{Player, Position, State};
 
 pub struct ViewShed {
     pub visible_tiles: Vec<Point>,
-    pub range: i32,
+    pub range: u32,
     pub dirty: bool, // whether or not to regenerate the viewshed
 }
 
 impl ViewShed {
-    pub fn new(range: i32) -> Self {
+    pub fn new(range: u32) -> Self {
         Self {
             range,
             visible_tiles: Vec::new(),
@@ -26,7 +26,7 @@ pub fn update_vision(state: &mut State) {
         }
         viewshed.dirty = false;
         viewshed.visible_tiles.clear();
-        viewshed.visible_tiles = field_of_view(pos.0, viewshed.range, &state.map);
+        viewshed.visible_tiles = field_of_view(pos.0, viewshed.range as i32, &state.map);
         viewshed.visible_tiles.retain(|p| state.map.within_bounds(*p));
 
         for tile in state.map.visible.iter_mut() {

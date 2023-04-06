@@ -45,7 +45,7 @@ pub fn load_rex_room(rex_file: impl ToString) -> Prefab {
                     '.' => floor_grass(), // space
                     '#' => wall_stone(),  // #
                     'P' => WorldTile {
-                        sprite: CharSprite::new('P', BLACK, None),
+                        sprite: CharSprite::with_color('P', BLACK, None),
                         is_blocking: true,
                         is_transparent: false,
                         destructible: crate::map::Destructible::Unbreakable,
@@ -53,7 +53,7 @@ pub fn load_rex_room(rex_file: impl ToString) -> Prefab {
                     _ => {
                         println!("{}, {} didn't match {}", x, y, (cell.ch as u8) as char);
                         WorldTile {
-                            sprite: CharSprite::new('E', BLACK, None),
+                            sprite: CharSprite::with_color('E', BLACK, None),
                             is_blocking: true,
                             is_transparent: false,
                             destructible: crate::map::Destructible::Unbreakable,

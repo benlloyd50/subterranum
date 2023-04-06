@@ -15,9 +15,7 @@ pub struct WorldRoom {
 
 impl WorldRoom {
     fn new() -> Self {
-        Self {
-            tiles : Vec::new(),
-        }
+        Self { tiles: Vec::new() }
     }
 }
 
@@ -230,7 +228,7 @@ fn cull_rooms(map: &mut Map) {
         let tile = &mut map.tiles[i];
         if visited[i] {
             continue;
-        } 
+        }
         if !tile.sprite.eq(floor_stone().sprite) {
             visited[i] = true;
             continue;
@@ -246,7 +244,8 @@ fn cull_rooms(map: &mut Map) {
 fn remove_small_rooms(map: &mut Map, min_size: usize) {
     let mut i = 0;
     loop {
-        if map.rooms[i].tiles.len() < min_size { // remove small rooms
+        if map.rooms[i].tiles.len() < min_size {
+            // remove small rooms
             let room = map.rooms.remove(i);
             for pt in &room.tiles {
                 map.tiles[pt.to_index(map.width)] = wall_stone();
@@ -262,9 +261,9 @@ fn remove_small_rooms(map: &mut Map, min_size: usize) {
 
 /// Checks neighbors and finds all points within a single continuous room
 fn flood_fill(starting: Point, map: &Map, visited: &mut Vec<bool>) -> WorldRoom {
-    let mut room = WorldRoom::new(); 
+    let mut room = WorldRoom::new();
     let mut unvisited = vec![starting];
-    
+
     while let Some(pt) = unvisited.pop() {
         // visit state, get neighbors, put on stack if they are floor, mark visited so we skip it next time
         let idx = pt.to_index(map.width);
@@ -286,12 +285,12 @@ fn flood_fill(starting: Point, map: &Map, visited: &mut Vec<bool>) -> WorldRoom 
             if map.tiles[neighbor_idx].sprite.eq(floor_stone().sprite) {
                 unvisited.push(neighbor);
             } else {
-                visited[neighbor_idx] = true;  // mark any tile that isn't in the room nor walkable as visited
+                visited[neighbor_idx] = true; // mark any tile that isn't in the room nor walkable as visited
             }
         }
     }
 
-   room
+    room
 }
 
 fn get_priority(vec: &mut VecDeque<(Point, i32)>) -> Option<(Point, i32)> {

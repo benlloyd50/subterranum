@@ -80,7 +80,7 @@ type Color = (u8, u8, u8);
 
 impl CharSprite {
     /// Create a new sprite, bg defaults to black which is useful for items
-    pub fn new(glyph: char, fg: Color, bg: Option<Color>) -> Self {
+    pub fn with_color(glyph: char, fg: Color, bg: Option<Color>) -> Self {
         match bg {
             Some(bg) => Self {
                 glyph: to_cp437(glyph),
@@ -92,6 +92,14 @@ impl CharSprite {
                 fg: RGB::named(fg),
                 bg: RGB::new(),
             },
+        }
+    }
+
+    pub fn new(glyph: char, fg: RGB, bg: RGB) -> Self {
+        Self {
+            glyph: to_cp437(glyph),
+            fg,
+            bg,
         }
     }
 

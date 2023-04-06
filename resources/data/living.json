@@ -1,0 +1,31 @@
+{
+    "monsters" : [
+        {
+            "name": "Player",
+            "sprite": {
+                "glyph": "☺",
+                "fg": "#21F1FC",
+                "bg": "#000000"
+            },
+            "view_range": 8
+        },
+        {
+            "name": "Centipede",
+            "sprite": {
+                "glyph": "C",
+                "fg": "#BC8F8F",
+                "bg": "#000000"
+            },
+            "view_range": 7
+        },
+        {
+            "name": "NPC Dude",
+            "sprite": {
+                "glyph": "@",
+                "fg": "#E4CD05",
+                "bg": "#000000"
+            },
+            "view_range": 7
+        }
+    ]
+}
