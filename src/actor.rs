@@ -2,6 +2,7 @@
    This file defines the components and systems commonly used by them.
 */
 use bracket_terminal::prelude::*;
+use serde::Deserialize;
 
 use crate::{
     fov::ViewShed,
@@ -32,6 +33,7 @@ pub fn try_move(map: &mut Map, dest_tile: Position, pos: &mut Position, view: &m
                     tile.destructible = Destructible::ByHand { health, dropped_item };
                     if health == 0 {
                         map.tiles[idx] = floor_grass();
+                        view.dirty = true;
                     }
                 }
                 Destructible::Unbreakable => {}
@@ -49,6 +51,7 @@ pub fn render_entities(ctx: &mut BTerm, state: &State) {
 }
 
 /// Tag Component that marks the player entity
+#[derive(Deserialize, Debug)]
 pub struct Player;
 
 #[derive(Clone, Debug)]
