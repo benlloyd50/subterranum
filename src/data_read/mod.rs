@@ -6,9 +6,9 @@ use lazy_static::lazy_static;
 
 mod living_structs;
 use living_structs::Living;
-use bracket_terminal::prelude::RGB;
+use bracket_terminal::prelude::{RGB, PURPLE, YELLOW4};
 
-use crate::{actor::{Position, CharSprite, Player}, fov::ViewShed};
+use crate::{actor::{Position, CharSprite, Player}, fov::ViewShed, monster::Breed};
 
 lazy_static! {
     pub static ref ENTITY_DB: Mutex<EntityDatabase> = Mutex::new(EntityDatabase::empty());
@@ -60,17 +60,21 @@ pub fn named_monster_builder(edb: &EntityDatabase, name: &str, pos: Position) ->
     eb.add(pos);
 
     if let Some(sprite) = &monster_info.sprite {
-        let fg = RGB::from_hex(&sprite.fg).unwrap();
-        let bg = RGB::from_hex(&sprite.bg).unwrap();
+        let fg = RGB::from_hex(&sprite.fg).unwrap_or(RGB::named(PURPLE));
+        let bg = RGB::from_hex(&sprite.bg).unwrap_or(RGB::named(YELLOW4));
 
         eb.add(CharSprite::new(sprite.glyph, fg, bg));
+    }
+
+    if let Some(breed) = &monster_info.breed {
+        eb.add(Breed::from(breed));
     }
 
     if let Some(view_distance) = &monster_info.view_range {
         eb.add(ViewShed::new(*view_distance));
     }
 
-    if monster_info.name == "Player".to_string() {
+    if let Some(_) = &monster_info.player {
         eb.add(Player);
     }
 

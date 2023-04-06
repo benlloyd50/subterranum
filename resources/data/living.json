@@ -7,7 +7,8 @@
                 "fg": "#21F1FC",
                 "bg": "#000000"
             },
-            "view_range": 8
+            "view_range": 8,
+            "player":  ""
         },
         {
             "name": "Centipede",
@@ -16,7 +17,8 @@
                 "fg": "#BC8F8F",
                 "bg": "#000000"
             },
-            "view_range": 7
+            "view_range": 7,
+            "breed": "Centipede"
         },
         {
             "name": "NPC Dude",
@@ -25,7 +27,8 @@
                 "fg": "#E4CD05",
                 "bg": "#000000"
             },
-            "view_range": 7
+            "view_range": 7,
+            "breed": "Human"
         }
     ]
 }

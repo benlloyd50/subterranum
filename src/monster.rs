@@ -1,6 +1,6 @@
 use bracket_pathfinding::prelude::{a_star_search, DistanceAlg};
 use rand::random;
-use std::{cmp::max, fmt};
+use std::cmp::max;
 
 use hecs::{With, World};
 
@@ -56,31 +56,14 @@ pub fn handle_monster_turns(world: &mut World, map: &mut Map, msg_log: &mut Vec<
 }
 
 /// General info about the type of monster/creature
-#[allow(dead_code)]
 pub struct Breed {
-    being_type: MonsterType,
     name: String,
 }
 
 impl Breed {
-    pub fn new(being_type: MonsterType) -> Self {
-        let monster_name = format!("Jeff the {}", being_type);
-
+    pub fn from(name: impl ToString) -> Self {
         Self {
-            being_type,
-            name: monster_name,
+            name: name.to_string(),
         }
-    }
-}
-
-/// A high level definition of the type of the monster
-#[derive(Debug)]
-pub enum MonsterType {
-    Centipede,
-}
-
-impl fmt::Display for MonsterType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Debug::fmt(self, f)
     }
 }

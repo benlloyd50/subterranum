@@ -1,5 +1,5 @@
 fullscreen = false
-dev_mode = true
+dev_mode = false 
 
 font_file = "RDE.png"
 # square font sizes for life
