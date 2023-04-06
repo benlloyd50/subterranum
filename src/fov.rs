@@ -1,5 +1,4 @@
 use bracket_pathfinding::prelude::*;
-use hecs::With;
 
 use crate::{Player, Position, State};
 
@@ -20,7 +19,7 @@ impl ViewShed {
 }
 
 pub fn update_vision(state: &mut State) {
-    for (_, (viewshed, pos)) in state.world.query::<With<(&mut ViewShed, &Position), &Player>>().iter() {
+    for (_, (viewshed, pos, player)) in state.world.query::<(&mut ViewShed, &Position, Option<&Player>)>().iter() {
         if !viewshed.dirty {
             return;
         }
@@ -29,13 +28,15 @@ pub fn update_vision(state: &mut State) {
         viewshed.visible_tiles = field_of_view(pos.0, viewshed.range as i32, &state.map);
         viewshed.visible_tiles.retain(|p| state.map.within_bounds(*p));
 
-        for tile in state.map.visible.iter_mut() {
-            *tile = false;
-        }
-        for point in viewshed.visible_tiles.iter() {
-            let idx = point.to_index(state.map.width);
-            state.map.discovered[idx] = true;
-            state.map.visible[idx] = true;
+        if let Some(_) = player {
+            for tile in state.map.visible.iter_mut() {
+                *tile = false;
+            }
+            for point in viewshed.visible_tiles.iter() {
+                let idx = point.to_index(state.map.width);
+                state.map.discovered[idx] = true;
+                state.map.visible[idx] = true;
+            }
         }
     }
 }

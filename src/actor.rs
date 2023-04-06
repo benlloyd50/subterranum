@@ -19,9 +19,9 @@ pub fn try_move(map: &mut Map, dest_tile: Position, pos: &mut Position, view: &m
         return false;
     }
     if let Some(mut tile) = map.tiles.get_mut(idx) {
+        view.dirty = true;  // make it dirty so the vision is updated definitely
         if !tile.is_blocking {
             *pos = dest_tile;
-            view.dirty = true;
             return true;
         } else {
             match tile.destructible {
@@ -33,7 +33,6 @@ pub fn try_move(map: &mut Map, dest_tile: Position, pos: &mut Position, view: &m
                     tile.destructible = Destructible::ByHand { health, dropped_item };
                     if health == 0 {
                         map.tiles[idx] = floor_grass();
-                        view.dirty = true;
                     }
                 }
                 Destructible::Unbreakable => {}
@@ -45,8 +44,12 @@ pub fn try_move(map: &mut Map, dest_tile: Position, pos: &mut Position, view: &m
 
 /// Renders all entities that have a Position and Sprite component
 pub fn render_entities(ctx: &mut BTerm, state: &State) {
-    for (_, (pos, sprite)) in state.world.query::<(&Position, &CharSprite)>().iter() {
-        ctx.set(pos.x(), pos.y(), sprite.fg, sprite.bg, sprite.glyph);
+    if let Some((_, (view, _))) = state.world.query::<(&ViewShed, &Player)>().iter().next() {
+        for (_, (pos, sprite)) in state.world.query::<(&Position, &CharSprite)>().iter() {
+            if view.visible_tiles.contains(&pos.0) || state.config.dev_mode {
+                ctx.set(pos.x(), pos.y(), sprite.fg, sprite.bg, sprite.glyph);
+            }
+        }
     }
 }
 
