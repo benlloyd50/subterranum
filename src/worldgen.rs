@@ -36,7 +36,6 @@ pub fn generate_map(seed: u64, depth: usize) -> (Map, Position) {
 
     let mut rng = RandomNumberGenerator::seeded(seed);
     create_caverns(&mut map, seed);
-    seal_cavern(&mut map);
 
     let player_spawn = if map.depth == 0 {
         create_entrance(&mut map, &mut rng)
@@ -100,6 +99,7 @@ fn create_caverns(map: &mut Map, seed: u64) {
 }
 
 /// Goes around the edge of the cave and makes the edges unbreakable
+#[allow(dead_code)]
 fn seal_cavern(map: &mut Map) {
     for cx in 0..MAP_WIDTH {
         let idx = map.xy_to_idx(cx, 0);
