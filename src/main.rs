@@ -72,19 +72,19 @@ impl State {
             let mut dest_pos = pos.clone();
             if let Some(key) = ctx.key {
                 match key {
-                    VirtualKeyCode::W | VirtualKeyCode::K => {
+                    VirtualKeyCode::Up | VirtualKeyCode::K => {
                         dest_pos.0.y = max(dest_pos.y() - 1, 0);
                         should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
-                    VirtualKeyCode::S | VirtualKeyCode::J => {
+                    VirtualKeyCode::Down | VirtualKeyCode::J => {
                         dest_pos.0.y += 1;
                         should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
-                    VirtualKeyCode::A | VirtualKeyCode::H => {
+                    VirtualKeyCode::Left | VirtualKeyCode::H => {
                         dest_pos.0.x = max(dest_pos.x() - 1, 0);
                         should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
-                    VirtualKeyCode::D | VirtualKeyCode::L => {
+                    VirtualKeyCode::Right | VirtualKeyCode::L => {
                         dest_pos.0.x += 1;
                         should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
