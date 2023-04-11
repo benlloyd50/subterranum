@@ -12,10 +12,10 @@ pub fn run_menu_systems(state: &mut State, ctx: &mut BTerm, menu_index: usize) -
 
     if let Some(key) = ctx.key {
         match key {
-            VirtualKeyCode::W => {
+            VirtualKeyCode::K | VirtualKeyCode::Up => {
                 new_menu_index = new_menu_index.saturating_sub(1);
             }
-            VirtualKeyCode::S => {
+            VirtualKeyCode::J | VirtualKeyCode::Down => {
                 new_menu_index = cmp::min(new_menu_index + 1, MAINMENU_OPTIONS.len() - 1);
             }
             VirtualKeyCode::Return => {

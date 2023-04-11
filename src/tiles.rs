@@ -44,6 +44,15 @@ pub fn wall_adamnatite() -> WorldTile {
     }
 }
 
+pub fn up_stairs() -> WorldTile {
+    WorldTile {
+        is_transparent: false,
+        is_blocking: false,
+        sprite: CharSprite::with_color('<', WHITESMOKE, None),
+        destructible: Destructible::Unbreakable,
+    }
+}
+
 pub fn down_stairs() -> WorldTile {
     WorldTile {
         is_transparent: false,

@@ -7,6 +7,7 @@ use bracket_terminal::prelude::{BTerm, Point};
 pub const MAP_WIDTH: usize = 100;
 pub const MAP_HEIGHT: usize = 70;
 
+#[derive(Clone)]
 pub struct Map {
     pub tiles: Vec<WorldTile>,
     pub rooms: Vec<WorldRoom>,
@@ -144,3 +145,4 @@ pub fn render_map(ctx: &mut BTerm, map: &Map, config: &Config) {
         }
     }
 }
+

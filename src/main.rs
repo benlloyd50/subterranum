@@ -3,7 +3,7 @@ use data_read::named_monster_builder;
 use gui::draw_gui;
 use hecs::*;
 use serde::Deserialize;
-use std::{cmp::max, fs, process::exit};
+use std::{cmp::max, fs, process::exit, collections::HashMap};
 
 mod data_read;
 use data_read::ENTITY_DB;
@@ -15,7 +15,7 @@ mod monster;
 mod prefab;
 mod worldgen;
 use map::{render_map, Map};
-use worldgen::generate_map;
+use worldgen::{generate_map, move_to_new_floor};
 mod fov;
 use fov::{update_vision, ViewShed};
 mod actor;
@@ -25,6 +25,7 @@ use actor::{render_entities, try_move, CharSprite, Player, Position};
 use menu::run_menu_systems;
 use messagelog::Message;
 use monster::handle_monster_turns;
+mod map_scanning;
 
 use crate::{
     data_read::load_data_for_entities,
@@ -39,12 +40,20 @@ pub struct State {
     message_log: Vec<Message>,
     config: Config,
     turn_counter: usize,
+    generated_maps: HashMap<usize, Map>,
 }
 
 #[derive(Clone)]
 pub enum RunState {
     InGame,
     MainMenu(MenuIndex),
+    NextLevel(usize),
+}
+
+enum PlayerResponse {
+    StateChange(RunState),
+    TurnAdvance,
+    Waiting,
 }
 
 impl State {
@@ -61,7 +70,7 @@ impl State {
 
     /// Checks for player's input and runs corresponding action
     /// Returns True if the player's action requires a response
-    fn player_input(&mut self, ctx: &mut BTerm) -> bool {
+    fn player_input(&mut self, ctx: &mut BTerm) -> PlayerResponse {
         let mut should_respond = false;
         for (_, (pos, view)) in self
             .world
@@ -108,6 +117,14 @@ impl State {
                         dest_pos.0.y += 1;
                         should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
+                    VirtualKeyCode::Comma => {
+                        let depth = self.map.depth + 1;
+                        return PlayerResponse::StateChange(RunState::NextLevel(depth));
+                    }
+                    VirtualKeyCode::Period => {
+                        let depth = self.map.depth - 1;
+                        return PlayerResponse::StateChange(RunState::NextLevel(depth));
+                    }
                     VirtualKeyCode::Space => {
                         // A waiting action
                         should_respond = true;
@@ -117,7 +134,11 @@ impl State {
                 }
             }
         }
-        should_respond
+        if should_respond {
+            PlayerResponse::TurnAdvance
+        } else {
+            PlayerResponse::Waiting
+        }
     }
 
     /// Response systems are ran after a player inputs something that progresses a turn
@@ -134,14 +155,21 @@ impl GameState for State {
             RunState::InGame => {
                 self.run_continuous_systems(ctx);
 
-                let response_needed = self.player_input(ctx);
-                if response_needed {
-                    self.turn_counter += 1;
-                    self.run_response_systems();
+                match self.player_input(ctx) {
+                    PlayerResponse::StateChange(new_state) => newstate = new_state,
+                    PlayerResponse::TurnAdvance => {
+                        self.turn_counter += 1;
+                        self.run_response_systems();
+                    }
+                    _ => {}
                 }
             }
             RunState::MainMenu(menu_idx) => {
                 newstate = run_menu_systems(self, ctx, menu_idx.0);
+            }
+            RunState::NextLevel(new_depth) => {
+                move_to_new_floor(self, new_depth);
+                newstate = RunState::InGame;
             }
         }
 
@@ -195,6 +223,7 @@ fn main() -> BError {
                 Message::new("This is an alpha build from March 2023".to_string()),
             ],
             turn_counter: 0,
+            generated_maps: HashMap::new(),
         }
     } else {
         State {
@@ -207,6 +236,7 @@ fn main() -> BError {
                 Message::new("This is an alpha build from March 2023".to_string()),
             ],
             turn_counter: 0,
+            generated_maps: HashMap::new(),
         }
     };
 

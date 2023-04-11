@@ -1,14 +1,16 @@
-use crate::actor::Position;
-use crate::map::{Map, MAP_HEIGHT, MAP_WIDTH};
+use crate::actor::{Position, Player};
+use crate::map::{Map, MAP_HEIGHT, MAP_WIDTH, WorldTile};
+use crate::map_scanning::find_up_stairs;
 use crate::prefab::{load_rex_room, xy_to_idx};
-use crate::tiles::*;
+use crate::{tiles::*, State};
 use bracket_noise::prelude::*;
 use bracket_pathfinding::prelude::Point;
 use bracket_random::prelude::*;
 use bracket_terminal::prelude::to_cp437;
+use hecs::With;
 use std::collections::VecDeque;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct WorldRoom {
     pub tiles: Vec<Point>,
 }
@@ -34,30 +36,55 @@ pub fn generate_map(seed: u64, depth: usize) -> (Map, Position) {
         depth,
     };
 
+    let seed = seed + depth as u64;
     let mut rng = RandomNumberGenerator::seeded(seed);
     create_caverns(&mut map, seed);
-
-    let player_spawn = if map.depth == 0 {
-        create_entrance(&mut map, &mut rng)
-    } else {
-        Position::new(0, 0)
-    };
 
     cull_rooms(&mut map);
     remove_small_rooms(&mut map, 10);
 
+    let player_spawn = if map.depth == 0 {
+        create_entrance(&mut map, &mut rng)
+    } else {
+        place_tile_in_random_room(&mut map, &mut rng, up_stairs())
+    };
+
     debug_map_rooms(&mut map);
 
-    place_down_stairs(&mut map, &mut rng);
+    place_tile_in_random_room(&mut map, &mut rng, down_stairs());
 
     // brush_spawn(&mut map, &mut rng);
 
     (map, player_spawn)
 }
 
+/// Moves to another floor and cleans up old floor
+pub fn move_to_new_floor(state: &mut State, new_depth: usize) {
+    // Update map that player was previously on
+    state.generated_maps.insert(state.map.depth, state.map.clone());
+
+    let (new_map, new_player_pos) = match state.generated_maps.get(&new_depth) {
+        None => {
+            println!("No existing map found"); 
+            generate_map(state.config.world_seed, new_depth) 
+        }
+        Some(map) => {
+            let old_depth = state.map.depth;
+            let new_pos = find_up_stairs(&state.map, old_depth);
+            (map.clone(), new_pos)
+        }
+    };
+
+    state.map = new_map;
+    if let Some((_, player_pos)) = state.world.query::<With<&mut Position, &Player>>().iter().next() {
+        *player_pos = new_player_pos;
+    }
+}
+
 /// displays each room's floor as a single hex digit 1-f, skips any rooms past the 16th for now
 /// this affects the map by setting each ground tile to a number, maybe this could be done on the
 /// rendering side instead
+/// skips any special tiles in a room such as staircases
 fn debug_map_rooms(map: &mut Map) {
     let mut room_num = 0;
     let symbols = (b'0'..=b'9')
@@ -68,18 +95,23 @@ fn debug_map_rooms(map: &mut Map) {
 
     for room in &mut map.rooms {
         for tile in &room.tiles {
-            map.tiles[tile.to_index(map.width)].sprite.glyph = to_cp437(symbols[room_num]);
+            let glyph = map.tiles[tile.to_index(map.width)].sprite.glyph;
+            if glyph == to_cp437('.') {
+                map.tiles[tile.to_index(map.width)].sprite.glyph = to_cp437(symbols[room_num]);
+            }
         }
 
         room_num += 1;
     }
 }
 
-fn place_down_stairs(map: &mut Map, rng: &mut RandomNumberGenerator) {
+/// Places a tile in a random room in the map, returns the position of where the tile was placed
+fn place_tile_in_random_room(map: &mut Map, rng: &mut RandomNumberGenerator, tile: WorldTile) -> Position {
     let room_idx = rng.range(0, map.rooms.len());
     let room_pos_idx = rng.range(0, map.rooms[room_idx].tiles.len());
-    let stair_pos = map.rooms[room_idx].tiles[room_pos_idx].to_index(map.width);
-    map.tiles[stair_pos] = down_stairs();
+    let tile_pos = map.rooms[room_idx].tiles[room_pos_idx].to_index(map.width);
+    map.tiles[tile_pos] = tile;
+    map.idx_to_pos(tile_pos)
 }
 
 fn create_caverns(map: &mut Map, seed: u64) {
@@ -127,6 +159,10 @@ fn create_entrance(map: &mut Map, rng: &mut RandomNumberGenerator) -> Position {
     for x in starting_x..starting_x + entrance_prefab.width {
         for y in starting_y..starting_y + entrance_prefab.height {
             let idx = map.xy_to_idx(x, y);
+            if map.tiles[idx].sprite.eq(floor_stone().sprite) {
+                continue;
+            }
+
             let prefab_idx = xy_to_idx(x - starting_x, y, entrance_prefab.width);
             let prefab_tile = entrance_prefab.structure[prefab_idx];
 
@@ -244,17 +280,17 @@ fn cull_rooms(map: &mut Map) {
 fn remove_small_rooms(map: &mut Map, min_size: usize) {
     let mut i = 0;
     loop {
-        if map.rooms[i].tiles.len() < min_size {
-            // remove small rooms
+        if i >= map.rooms.len() {
+            break;
+        }
+        let size = map.rooms[i].tiles.len();
+        if size < min_size {
             let room = map.rooms.remove(i);
             for pt in &room.tiles {
                 map.tiles[pt.to_index(map.width)] = wall_stone();
             }
         } else {
             i += 1;
-            if i >= map.rooms.len() {
-                break;
-            }
         }
     }
 }
@@ -265,14 +301,15 @@ fn flood_fill(starting: Point, map: &Map, visited: &mut Vec<bool>) -> WorldRoom 
     let mut unvisited = vec![starting];
 
     while let Some(pt) = unvisited.pop() {
-        // visit state, get neighbors, put on stack if they are floor, mark visited so we skip it next time
         let idx = pt.to_index(map.width);
+        if visited[idx] == true {
+            continue;
+        }
         visited[idx] = true;
         room.tiles.push(pt);
 
         let neighbors = get_neighbors(pt);
         if neighbors.len() == 0 {
-            println!("didn't find any neighbors");
             continue;
         }
 
