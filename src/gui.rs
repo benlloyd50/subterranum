@@ -36,6 +36,8 @@ fn draw_right_box(ctx: &mut BTerm, state: &State, screenheight: usize) {
         ctx.print(right_map_edge_x, 5, format!("X: {} Y: {}", pos.x(), pos.y()));
         ctx.print(right_map_edge_x, 6, format!("Tile Index: {}", idx));
     }
+
+    ctx.print(right_map_edge_x, 7, format!("Depth: {}", state.map.depth));
 }
 
 fn get_player_pos(world: &World, map: &Map) -> Option<(Position, usize)> {

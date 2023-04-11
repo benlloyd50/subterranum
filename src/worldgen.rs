@@ -1,6 +1,6 @@
 use crate::actor::{Position, Player};
-use crate::map::{Map, MAP_HEIGHT, MAP_WIDTH, WorldTile};
-use crate::map_scanning::find_up_stairs;
+use crate::map::{Map, MAP_HEIGHT, MAP_WIDTH, WorldTile, TileType};
+use crate::map_scanning::find_tile_from_type;
 use crate::prefab::{load_rex_room, xy_to_idx};
 use crate::{tiles::*, State};
 use bracket_noise::prelude::*;
@@ -70,7 +70,11 @@ pub fn move_to_new_floor(state: &mut State, new_depth: usize) {
         }
         Some(map) => {
             let old_depth = state.map.depth;
-            let new_pos = find_up_stairs(&state.map, old_depth);
+            let new_pos = if old_depth < new_depth { 
+                find_tile_from_type(map, old_depth, &TileType::UpStairs)
+            } else {
+                find_tile_from_type(map, old_depth, &TileType::DownStairs)
+            };
             (map.clone(), new_pos)
         }
     };

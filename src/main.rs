@@ -118,11 +118,11 @@ impl State {
                         should_respond = try_move(&mut self.map, dest_pos, pos, view);
                     }
                     VirtualKeyCode::Comma => {
-                        let depth = self.map.depth + 1;
+                        let depth = self.map.depth - 1;
                         return PlayerResponse::StateChange(RunState::NextLevel(depth));
                     }
                     VirtualKeyCode::Period => {
-                        let depth = self.map.depth - 1;
+                        let depth = self.map.depth + 1;
                         return PlayerResponse::StateChange(RunState::NextLevel(depth));
                     }
                     VirtualKeyCode::Space => {

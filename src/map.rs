@@ -24,6 +24,17 @@ pub struct WorldTile {
     pub is_blocking: bool,
     pub is_transparent: bool,
     pub destructible: Destructible,
+    pub tile_type: TileType,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum TileType {
+    Floor,
+    Wall,
+    DownStairs,
+    UpStairs,
+    Water, 
+    Special,
 }
 
 #[derive(Copy, Clone)]

@@ -1,6 +1,6 @@
 use crate::{
     item::Item,
-    map::{Destructible, WorldTile},
+    map::{Destructible, WorldTile, TileType},
     CharSprite,
 };
 use bracket_terminal::prelude::*;
@@ -28,6 +28,7 @@ pub fn wall_stone() -> WorldTile {
             health: 4,
             dropped_item: Item {},
         },
+        tile_type: TileType::Wall,
     }
 }
 
@@ -41,6 +42,7 @@ pub fn wall_adamnatite() -> WorldTile {
             bg: RGB::named(PURPLE2),
         },
         destructible: Destructible::Unbreakable,
+        tile_type: TileType::Wall,
     }
 }
 
@@ -50,6 +52,7 @@ pub fn up_stairs() -> WorldTile {
         is_blocking: false,
         sprite: CharSprite::with_color('<', WHITESMOKE, None),
         destructible: Destructible::Unbreakable,
+        tile_type: TileType::UpStairs,
     }
 }
 
@@ -59,6 +62,7 @@ pub fn down_stairs() -> WorldTile {
         is_blocking: false,
         sprite: CharSprite::with_color('>', WHITESMOKE, None),
         destructible: Destructible::Unbreakable,
+        tile_type: TileType::DownStairs,
     }
 }
 
@@ -73,6 +77,7 @@ pub fn deep_water() -> WorldTile {
             bg: RGB::named(ROYAL_BLUE),
         },
         destructible: Destructible::Unbreakable,
+        tile_type: TileType::Water,
     }
 }
 
@@ -86,6 +91,7 @@ pub fn floor_stone() -> WorldTile {
             bg: RGB::named(LIGHTSLATEGRAY),
         },
         destructible: Destructible::Unbreakable,
+        tile_type: TileType::Floor,
     }
 }
 
@@ -102,6 +108,7 @@ pub fn floor_grass() -> WorldTile {
             bg: RGB::named(FOREST_GREEN),
         },
         destructible: Destructible::Unbreakable,
+        tile_type: TileType::Floor,
     }
 }
 
@@ -115,5 +122,6 @@ pub fn lush_brush() -> WorldTile {
             bg: RGB::named(DARK_GREEN),
         },
         destructible: Destructible::Unbreakable,
+        tile_type: TileType::Special,
     }
 }

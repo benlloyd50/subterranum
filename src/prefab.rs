@@ -6,7 +6,7 @@
 
 use crate::{
     actor::CharSprite,
-    map::WorldTile,
+    map::{WorldTile, TileType},
     tiles::{floor_grass, wall_stone},
 };
 use bracket_terminal::prelude::{XpFile, BLACK};
@@ -49,6 +49,7 @@ pub fn load_rex_room(rex_file: impl ToString) -> Prefab {
                         is_blocking: true,
                         is_transparent: false,
                         destructible: crate::map::Destructible::Unbreakable,
+                        tile_type: TileType::Special,
                     },
                     _ => {
                         println!("{}, {} didn't match {}", x, y, (cell.ch as u8) as char);
@@ -57,6 +58,7 @@ pub fn load_rex_room(rex_file: impl ToString) -> Prefab {
                             is_blocking: true,
                             is_transparent: false,
                             destructible: crate::map::Destructible::Unbreakable,
+                            tile_type: TileType::Special,
                         }
                     }
                 }

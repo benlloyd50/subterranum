@@ -75,7 +75,7 @@ impl Position {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct CharSprite {
     pub glyph: FontCharType,
     pub fg: RGB,
