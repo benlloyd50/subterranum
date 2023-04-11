@@ -6,10 +6,29 @@ use serde::Deserialize;
 
 use crate::{
     fov::ViewShed,
-    map::{Destructible, Map},
+    map::{Destructible, Map, TileType},
     tiles::floor_grass,
     BTerm, State,
 };
+
+pub fn try_descend(map: &Map, player_pos: &Position) -> bool {
+    if map.tiles[player_pos.0.to_index(map.width)].tile_type == TileType::DownStairs {
+        return true;
+    }
+    false
+}
+
+pub fn try_ascend(map: &Map, player_pos: &Position, depth: usize, delta: usize) -> bool {
+    let new_depth = depth - delta;
+    if new_depth > 0 {
+        return false;
+    }
+
+    if map.tiles[player_pos.0.to_index(map.width)].tile_type == TileType::UpStairs {
+        return true;
+    }
+    false
+}
 
 /// Attempts to move an entity's position given it is allowed to move there
 /// Returns true if successful in moving

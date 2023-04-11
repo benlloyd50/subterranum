@@ -21,7 +21,7 @@ use fov::{update_vision, ViewShed};
 mod actor;
 mod item;
 mod tiles;
-use actor::{render_entities, try_move, CharSprite, Player, Position};
+use actor::{render_entities, try_move, CharSprite, Player, Position, try_descend, try_ascend};
 use menu::run_menu_systems;
 use messagelog::Message;
 use monster::handle_monster_turns;
@@ -119,11 +119,15 @@ impl State {
                     }
                     VirtualKeyCode::Comma => {
                         let depth = self.map.depth - 1;
-                        return PlayerResponse::StateChange(RunState::NextLevel(depth));
+                        if try_ascend(&self.map, pos, self.map.depth, 1) {
+                            return PlayerResponse::StateChange(RunState::NextLevel(depth));
+                        }
                     }
                     VirtualKeyCode::Period => {
                         let depth = self.map.depth + 1;
-                        return PlayerResponse::StateChange(RunState::NextLevel(depth));
+                        if try_descend(&self.map, pos) {
+                            return PlayerResponse::StateChange(RunState::NextLevel(depth));
+                        }
                     }
                     VirtualKeyCode::Space => {
                         // A waiting action
