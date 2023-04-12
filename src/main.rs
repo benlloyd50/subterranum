@@ -2,8 +2,9 @@ use bracket_terminal::prelude::*;
 use data_read::named_monster_builder;
 use gui::draw_gui;
 use hecs::*;
+use input::player_input;
 use serde::Deserialize;
-use std::{cmp::max, fs, process::exit, collections::HashMap};
+use std::{collections::HashMap, fs};
 
 mod data_read;
 use data_read::ENTITY_DB;
@@ -17,15 +18,16 @@ mod worldgen;
 use map::{render_map, Map};
 use worldgen::{generate_map, move_to_new_floor};
 mod fov;
-use fov::{update_vision, ViewShed};
+use fov::update_vision;
 mod actor;
 mod item;
 mod tiles;
-use actor::{render_entities, try_move, CharSprite, Player, Position, try_descend, try_ascend};
+use actor::{render_entities, CharSprite, Player, Position,};
 use menu::run_menu_systems;
 use messagelog::Message;
 use monster::handle_monster_turns;
 mod map_scanning;
+mod input;
 
 use crate::{
     data_read::load_data_for_entities,
@@ -50,7 +52,7 @@ pub enum RunState {
     NextLevel(usize),
 }
 
-enum PlayerResponse {
+pub enum PlayerResponse {
     StateChange(RunState),
     TurnAdvance,
     Waiting,
@@ -68,83 +70,6 @@ impl State {
         draw_gui(ctx, self);
     }
 
-    /// Checks for player's input and runs corresponding action
-    /// Returns True if the player's action requires a response
-    fn player_input(&mut self, ctx: &mut BTerm) -> PlayerResponse {
-        let mut should_respond = false;
-        for (_, (pos, view)) in self
-            .world
-            .query::<(With<&mut Position, &Player>, &mut ViewShed)>()
-            .iter()
-        {
-            // dest_tile represents the position of something the player will interact with
-            let mut dest_pos = pos.clone();
-            if let Some(key) = ctx.key {
-                match key {
-                    VirtualKeyCode::Up | VirtualKeyCode::K => {
-                        dest_pos.0.y = max(dest_pos.y() - 1, 0);
-                        should_respond = try_move(&mut self.map, dest_pos, pos, view);
-                    }
-                    VirtualKeyCode::Down | VirtualKeyCode::J => {
-                        dest_pos.0.y += 1;
-                        should_respond = try_move(&mut self.map, dest_pos, pos, view);
-                    }
-                    VirtualKeyCode::Left | VirtualKeyCode::H => {
-                        dest_pos.0.x = max(dest_pos.x() - 1, 0);
-                        should_respond = try_move(&mut self.map, dest_pos, pos, view);
-                    }
-                    VirtualKeyCode::Right | VirtualKeyCode::L => {
-                        dest_pos.0.x += 1;
-                        should_respond = try_move(&mut self.map, dest_pos, pos, view);
-                    }
-                    VirtualKeyCode::Y => {
-                        dest_pos.0.x = max(dest_pos.x() - 1, 0);
-                        dest_pos.0.y = max(dest_pos.y() - 1, 0);
-                        should_respond = try_move(&mut self.map, dest_pos, pos, view);
-                    }
-                    VirtualKeyCode::U => {
-                        dest_pos.0.x += 1;
-                        dest_pos.0.y = max(dest_pos.y() - 1, 0);
-                        should_respond = try_move(&mut self.map, dest_pos, pos, view);
-                    }
-                    VirtualKeyCode::N => {
-                        dest_pos.0.x = max(dest_pos.x() - 1, 0);
-                        dest_pos.0.y += 1;
-                        should_respond = try_move(&mut self.map, dest_pos, pos, view);
-                    }
-                    VirtualKeyCode::M => {
-                        dest_pos.0.x += 1;
-                        dest_pos.0.y += 1;
-                        should_respond = try_move(&mut self.map, dest_pos, pos, view);
-                    }
-                    VirtualKeyCode::Comma => {
-                        let depth = self.map.depth - 1;
-                        if try_ascend(&self.map, pos, self.map.depth, 1) {
-                            return PlayerResponse::StateChange(RunState::NextLevel(depth));
-                        }
-                    }
-                    VirtualKeyCode::Period => {
-                        let depth = self.map.depth + 1;
-                        if try_descend(&self.map, pos) {
-                            return PlayerResponse::StateChange(RunState::NextLevel(depth));
-                        }
-                    }
-                    VirtualKeyCode::Space => {
-                        // A waiting action
-                        should_respond = true;
-                    }
-                    VirtualKeyCode::Escape => exit(0),
-                    _ => {}
-                }
-            }
-        }
-        if should_respond {
-            PlayerResponse::TurnAdvance
-        } else {
-            PlayerResponse::Waiting
-        }
-    }
-
     /// Response systems are ran after a player inputs something that progresses a turn
     fn run_response_systems(&mut self) {
         handle_monster_turns(&mut self.world, &mut self.map, &mut self.message_log);
@@ -159,7 +84,7 @@ impl GameState for State {
             RunState::InGame => {
                 self.run_continuous_systems(ctx);
 
-                match self.player_input(ctx) {
+                match player_input(self, ctx) {
                     PlayerResponse::StateChange(new_state) => newstate = new_state,
                     PlayerResponse::TurnAdvance => {
                         self.turn_counter += 1;

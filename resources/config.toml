@@ -1,7 +1,7 @@
 fullscreen = false 
 dev_mode = true
 
-font_file = "RDE.png"
+font_file = "RDE_graphics.png"
 # square font sizes for life
 font_size = 8 
 

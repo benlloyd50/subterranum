@@ -68,3 +68,20 @@ pub fn load_rex_room(rex_file: impl ToString) -> Prefab {
 
     prefab
 }
+
+/// Clockwise rotation
+pub enum Rotation {
+    Ninety,
+    OneEighty,
+    TwoSeventy,
+}
+
+#[allow(dead_code)]
+fn rotate_room(prefab: &Prefab, rotation: &Rotation) -> Prefab {
+    todo!("Will do soon");
+}
+
+#[allow(dead_code)]
+fn rotate_ninety(vec: Vec<WorldTile>, width: usize, height: usize) -> Vec<WorldTile> {
+    todo!("Will do sooner");
+}

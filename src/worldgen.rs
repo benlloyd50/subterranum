@@ -49,11 +49,9 @@ pub fn generate_map(seed: u64, depth: usize) -> (Map, Position) {
         place_tile_in_random_room(&mut map, &mut rng, up_stairs())
     };
 
-    debug_map_rooms(&mut map);
-
     place_tile_in_random_room(&mut map, &mut rng, down_stairs());
+    brush_spawn(&mut map, &mut rng);
 
-    // brush_spawn(&mut map, &mut rng);
 
     (map, player_spawn)
 }
@@ -89,6 +87,7 @@ pub fn move_to_new_floor(state: &mut State, new_depth: usize) {
 /// this affects the map by setting each ground tile to a number, maybe this could be done on the
 /// rendering side instead
 /// skips any special tiles in a room such as staircases
+#[allow(dead_code)]
 fn debug_map_rooms(map: &mut Map) {
     let mut room_num = 0;
     let symbols = (b'0'..=b'9')
@@ -193,7 +192,7 @@ fn brush_spawn(map: &mut Map, rng: &mut RandomNumberGenerator) {
         let mut breeding = VecDeque::new();
         breeding.push_front((point, 0));
 
-        let mut lifetimes = 75;
+        let mut lifetimes = 1000;
         while let Some((breeder, priority)) = get_priority(&mut breeding) {
             let idx = breeder.to_index(map.width);
             if map.tiles[idx].is_blocking {

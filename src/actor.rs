@@ -13,21 +13,20 @@ use crate::{
 
 pub fn try_descend(map: &Map, player_pos: &Position) -> bool {
     if map.tiles[player_pos.0.to_index(map.width)].tile_type == TileType::DownStairs {
-        return true;
+        true
+    } else {
+        false
     }
-    false
 }
 
 pub fn try_ascend(map: &Map, player_pos: &Position, depth: usize, delta: usize) -> bool {
-    let new_depth = depth - delta;
-    if new_depth > 0 {
-        return false;
+    if depth == 0 && delta == 1 {
+        false
+    } else if map.tiles[player_pos.0.to_index(map.width)].tile_type == TileType::UpStairs {
+        true
+    } else {
+        false
     }
-
-    if map.tiles[player_pos.0.to_index(map.width)].tile_type == TileType::UpStairs {
-        return true;
-    }
-    false
 }
 
 /// Attempts to move an entity's position given it is allowed to move there
