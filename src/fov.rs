@@ -19,7 +19,11 @@ impl ViewShed {
 }
 
 pub fn update_vision(state: &mut State) {
-    for (_, (viewshed, pos, player)) in state.world.query::<(&mut ViewShed, &Position, Option<&Player>)>().iter() {
+    for (_, (viewshed, pos, player)) in state
+        .world
+        .query::<(&mut ViewShed, &Position, Option<&Player>)>()
+        .iter()
+    {
         if !viewshed.dirty {
             return;
         }

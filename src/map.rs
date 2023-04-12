@@ -33,7 +33,7 @@ pub enum TileType {
     Wall,
     DownStairs,
     UpStairs,
-    Water, 
+    Water,
     Special,
 }
 
@@ -156,4 +156,3 @@ pub fn render_map(ctx: &mut BTerm, map: &Map, config: &Config) {
         }
     }
 }
-

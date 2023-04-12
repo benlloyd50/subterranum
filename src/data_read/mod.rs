@@ -1,14 +1,18 @@
 use hecs::EntityBuilder;
-use serde_json::from_str;
-use serde::Deserialize;
-use std::{fs, sync::Mutex, collections::HashMap};
 use lazy_static::lazy_static;
+use serde::Deserialize;
+use serde_json::from_str;
+use std::{collections::HashMap, fs, sync::Mutex};
 
 mod living_structs;
+use bracket_terminal::prelude::{PURPLE, RGB, YELLOW4};
 use living_structs::Living;
-use bracket_terminal::prelude::{RGB, PURPLE, YELLOW4};
 
-use crate::{actor::{Position, CharSprite, Player}, fov::ViewShed, monster::Breed};
+use crate::{
+    actor::{CharSprite, Player, Position},
+    fov::ViewShed,
+    monster::Breed,
+};
 
 lazy_static! {
     pub static ref ENTITY_DB: Mutex<EntityDatabase> = Mutex::new(EntityDatabase::empty());
@@ -27,8 +31,8 @@ pub struct EntityDatabase {
 impl EntityDatabase {
     fn empty() -> Self {
         Self {
-            entity_data: EntityData{ monsters: Vec::new(),},
-            monster_index : HashMap::new(),
+            entity_data: EntityData { monsters: Vec::new() },
+            monster_index: HashMap::new(),
         }
     }
 

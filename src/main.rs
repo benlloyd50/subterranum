@@ -22,17 +22,14 @@ use fov::update_vision;
 mod actor;
 mod item;
 mod tiles;
-use actor::{render_entities, CharSprite, Player, Position,};
+use actor::{render_entities, CharSprite, Player, Position};
 use menu::run_menu_systems;
 use messagelog::Message;
 use monster::handle_monster_turns;
-mod map_scanning;
 mod input;
+mod map_scanning;
 
-use crate::{
-    data_read::load_data_for_entities,
-    menu::MenuIndex,
-};
+use crate::{data_read::load_data_for_entities, menu::MenuIndex};
 
 pub struct State {
     world: World, // Holds all of our entities

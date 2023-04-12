@@ -6,7 +6,7 @@
 
 use crate::{
     actor::CharSprite,
-    map::{WorldTile, TileType},
+    map::{TileType, WorldTile},
     tiles::{floor_grass, wall_stone},
 };
 use bracket_terminal::prelude::{XpFile, BLACK};

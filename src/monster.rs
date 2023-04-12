@@ -62,8 +62,6 @@ pub struct Breed {
 
 impl Breed {
     pub fn from(name: impl ToString) -> Self {
-        Self {
-            name: name.to_string(),
-        }
+        Self { name: name.to_string() }
     }
 }

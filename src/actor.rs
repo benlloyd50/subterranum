@@ -37,7 +37,7 @@ pub fn try_move(map: &mut Map, dest_tile: Position, pos: &mut Position, view: &m
         return false;
     }
     if let Some(mut tile) = map.tiles.get_mut(idx) {
-        view.dirty = true;  // make it dirty so the vision is updated definitely
+        view.dirty = true; // make it dirty so the vision is updated definitely
         if !tile.is_blocking {
             *pos = dest_tile;
             return true;

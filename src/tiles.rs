@@ -1,6 +1,6 @@
 use crate::{
     item::Item,
-    map::{Destructible, WorldTile, TileType},
+    map::{Destructible, TileType, WorldTile},
     CharSprite,
 };
 use bracket_terminal::prelude::*;

@@ -1,5 +1,5 @@
-use crate::actor::{Position, Player};
-use crate::map::{Map, MAP_HEIGHT, MAP_WIDTH, WorldTile, TileType};
+use crate::actor::{Player, Position};
+use crate::map::{Map, TileType, WorldTile, MAP_HEIGHT, MAP_WIDTH};
 use crate::map_scanning::find_tile_from_type;
 use crate::prefab::{load_rex_room, xy_to_idx};
 use crate::{tiles::*, State};
@@ -52,7 +52,6 @@ pub fn generate_map(seed: u64, depth: usize) -> (Map, Position) {
     place_tile_in_random_room(&mut map, &mut rng, down_stairs());
     brush_spawn(&mut map, &mut rng);
 
-
     (map, player_spawn)
 }
 
@@ -62,13 +61,10 @@ pub fn move_to_new_floor(state: &mut State, new_depth: usize) {
     state.generated_maps.insert(state.map.depth, state.map.clone());
 
     let (new_map, new_player_pos) = match state.generated_maps.get(&new_depth) {
-        None => {
-            println!("No existing map found"); 
-            generate_map(state.config.world_seed, new_depth) 
-        }
+        None => generate_map(state.config.world_seed, new_depth),
         Some(map) => {
             let old_depth = state.map.depth;
-            let new_pos = if old_depth < new_depth { 
+            let new_pos = if old_depth < new_depth {
                 find_tile_from_type(map, old_depth, &TileType::UpStairs)
             } else {
                 find_tile_from_type(map, old_depth, &TileType::DownStairs)
