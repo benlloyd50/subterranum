@@ -2,7 +2,7 @@
  */
 use crate::{actor::Position, item::Item, worldgen::WorldRoom, CharSprite, Config};
 use bracket_pathfinding::prelude::{Algorithm2D, BaseMap, DistanceAlg, SmallVec};
-use bracket_terminal::prelude::{BTerm, Point};
+use bracket_terminal::prelude::{BTerm, Point, PURPLE, WHITESMOKE};
 
 pub const MAP_WIDTH: usize = 100;
 pub const MAP_HEIGHT: usize = 70;
@@ -35,12 +35,14 @@ pub enum TileType {
     UpStairs,
     Water,
     Special,
+    Unknown,
 }
 
 #[derive(Copy, Clone)]
 pub enum Destructible {
-    ByHand { health: usize, dropped_item: Item },
     Unbreakable,
+    ByHand { health: usize, dropped_item: Item },
+    _ByPick { health: usize, dropped_item: Item },
 }
 
 impl Map {
@@ -90,6 +92,18 @@ impl Map {
     /// Returns true if a point is within the bounds of a the map
     pub fn within_bounds(&self, tile_pos: Point) -> bool {
         tile_pos.x < self.width as i32 && tile_pos.y < self.height as i32 && tile_pos.x >= 0 && tile_pos.y >= 0
+    }
+}
+
+impl WorldTile {
+    pub fn empty() -> Self {
+        Self {
+            is_blocking: false,
+            is_transparent: false,
+            destructible: Destructible::Unbreakable,
+            sprite: CharSprite::new('?', PURPLE, WHITESMOKE),
+            tile_type: TileType::Unknown,
+        }
     }
 }
 

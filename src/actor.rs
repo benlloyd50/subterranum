@@ -7,8 +7,7 @@ use serde::Deserialize;
 use crate::{
     fov::ViewShed,
     map::{Destructible, Map, TileType},
-    tiles::floor_grass,
-    BTerm, State,
+    BTerm, State, data_read::named_tile,
 };
 
 pub fn try_descend(map: &Map, player_pos: &Position) -> bool {
@@ -50,10 +49,11 @@ pub fn try_move(map: &mut Map, dest_tile: Position, pos: &mut Position, view: &m
                     health -= 1;
                     tile.destructible = Destructible::ByHand { health, dropped_item };
                     if health == 0 {
-                        map.tiles[idx] = floor_grass();
+                        map.tiles[idx] = named_tile("Grass Floor");
                     }
                 }
-                Destructible::Unbreakable => {}
+                Destructible::Unbreakable => {},
+                Destructible::_ByPick { .. } => { unimplemented!("Pickaxe not ready for use")},
             };
         }
     }
@@ -119,7 +119,15 @@ impl CharSprite {
         }
     }
 
-    pub fn new(glyph: char, fg: RGB, bg: RGB) -> Self {
+    pub fn new(glyph: char, fg: Color, bg: Color) -> Self {
+        Self {
+            glyph: to_cp437(glyph),
+            fg: RGB::named(fg),
+            bg: RGB::named(bg),
+        }
+    }
+
+    pub fn rgb(glyph: char, fg: RGB, bg: RGB) -> Self {
         Self {
             glyph: to_cp437(glyph),
             fg,

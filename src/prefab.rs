@@ -6,8 +6,7 @@
 
 use crate::{
     actor::CharSprite,
-    map::{TileType, WorldTile},
-    tiles::{floor_grass, wall_stone},
+    map::{TileType, WorldTile}, data_read::named_tile,
 };
 use bracket_terminal::prelude::{XpFile, BLACK};
 
@@ -32,7 +31,7 @@ pub fn load_rex_room(rex_file: impl ToString) -> Prefab {
 
     for layer in &xp_file.layers {
         // If there is more than 1 layer than the prefab will only have the contents of the last layer viewed
-        prefab.structure = vec![wall_stone(); layer.width * layer.height];
+        prefab.structure = vec![named_tile("Stone Wall"); layer.width * layer.height];
         prefab.width = layer.width;
         prefab.height = layer.height;
 
@@ -42,8 +41,8 @@ pub fn load_rex_room(rex_file: impl ToString) -> Prefab {
                 let idx = xy_to_idx(x, y, prefab.width);
 
                 prefab.structure[idx] = match (cell.ch as u8) as char {
-                    '.' => floor_grass(), // space
-                    '#' => wall_stone(),  // #
+                    '.' => named_tile("Grass Floor"), // space
+                    '#' => named_tile("Stone Wall"),  // #
                     'P' => WorldTile {
                         sprite: CharSprite::with_color('P', BLACK, None),
                         is_blocking: true,

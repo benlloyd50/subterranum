@@ -1,5 +1,5 @@
 {
-    "monsters" : [
+    "all" : [
         {
             "name": "Player",
             "sprite": {

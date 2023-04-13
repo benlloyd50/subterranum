@@ -1,8 +1,9 @@
 use crate::actor::{Player, Position};
+use crate::data_read::named_tile;
 use crate::map::{Map, TileType, WorldTile, MAP_HEIGHT, MAP_WIDTH};
 use crate::map_scanning::find_tile_from_type;
 use crate::prefab::{load_rex_room, xy_to_idx};
-use crate::{tiles::*, State};
+use crate::State;
 use bracket_noise::prelude::*;
 use bracket_pathfinding::prelude::Point;
 use bracket_random::prelude::*;
@@ -27,7 +28,7 @@ pub fn generate_map(seed: u64, depth: usize) -> (Map, Position) {
 
     // create the map for the overworld
     let mut map = Map {
-        tiles: vec![wall_stone(); width * height],
+        tiles: vec![named_tile("Stone Wall"); width * height],
         visible: vec![false; width * height],
         discovered: vec![false; width * height],
         rooms: Vec::new(),
@@ -46,10 +47,10 @@ pub fn generate_map(seed: u64, depth: usize) -> (Map, Position) {
     let player_spawn = if map.depth == 0 {
         create_entrance(&mut map, &mut rng)
     } else {
-        place_tile_in_random_room(&mut map, &mut rng, up_stairs())
+        place_tile_in_random_room(&mut map, &mut rng, named_tile("Up Stairs"))
     };
 
-    place_tile_in_random_room(&mut map, &mut rng, down_stairs());
+    place_tile_in_random_room(&mut map, &mut rng, named_tile("Down Stairs"));
     brush_spawn(&mut map, &mut rng);
 
     (map, player_spawn)
@@ -123,7 +124,7 @@ fn create_caverns(map: &mut Map, seed: u64) {
 
             let idx = map.xy_to_idx(x, y);
             if perlin_value > 0.6 && perlin_value < 0.9 {
-                map.tiles[idx] = floor_stone();
+                map.tiles[idx] = named_tile("Stone Floor");
             }
         }
     }
@@ -134,16 +135,16 @@ fn create_caverns(map: &mut Map, seed: u64) {
 fn seal_cavern(map: &mut Map) {
     for cx in 0..MAP_WIDTH {
         let idx = map.xy_to_idx(cx, 0);
-        map.tiles[idx] = wall_adamnatite();
+        map.tiles[idx] = named_tile("Adamantite Wall");
         let idx = map.xy_to_idx(cx, map.height - 1);
-        map.tiles[idx] = wall_adamnatite();
+        map.tiles[idx] = named_tile("Adamantite Wall");
     }
 
     for cy in 0..MAP_HEIGHT {
         let idx = map.xy_to_idx(0, cy);
-        map.tiles[idx] = wall_adamnatite();
+        map.tiles[idx] = named_tile("Adamantite Wall");
         let idx = map.xy_to_idx(map.width - 1, cy);
-        map.tiles[idx] = wall_adamnatite();
+        map.tiles[idx] = named_tile("Adamantite Wall");
     }
 }
 
@@ -158,7 +159,7 @@ fn create_entrance(map: &mut Map, rng: &mut RandomNumberGenerator) -> Position {
     for x in starting_x..starting_x + entrance_prefab.width {
         for y in starting_y..starting_y + entrance_prefab.height {
             let idx = map.xy_to_idx(x, y);
-            if map.tiles[idx].sprite.eq(floor_stone().sprite) {
+            if map.tiles[idx].sprite.eq(named_tile("Stone Floor").sprite) {
                 continue;
             }
 
@@ -168,7 +169,7 @@ fn create_entrance(map: &mut Map, rng: &mut RandomNumberGenerator) -> Position {
             // checks for a special player spawn tile in the prefab
             if prefab_tile.sprite.glyph == to_cp437('P') {
                 player_spawn = map.idx_to_pos(idx);
-                map.tiles[idx] = floor_grass();
+                map.tiles[idx] = named_tile("Grass Floor");
                 continue;
             }
 
@@ -196,7 +197,7 @@ fn brush_spawn(map: &mut Map, rng: &mut RandomNumberGenerator) {
                 continue;
             }
 
-            map.tiles[idx] = lush_brush();
+            map.tiles[idx] = named_tile("Lush Brush");
             for neighbor in get_neighbors(breeder) {
                 if rng.rand::<f32>() < 0.4 {
                     breeding.push_back((neighbor, priority + 1));
@@ -264,7 +265,7 @@ fn cull_rooms(map: &mut Map) {
         if visited[i] {
             continue;
         }
-        if !tile.sprite.eq(floor_stone().sprite) {
+        if !tile.sprite.eq(named_tile("Stone Floor").sprite) {
             visited[i] = true;
             continue;
         }
@@ -286,7 +287,7 @@ fn remove_small_rooms(map: &mut Map, min_size: usize) {
         if size < min_size {
             let room = map.rooms.remove(i);
             for pt in &room.tiles {
-                map.tiles[pt.to_index(map.width)] = wall_stone();
+                map.tiles[pt.to_index(map.width)] = named_tile("Stone Wall");
             }
         } else {
             i += 1;
@@ -318,7 +319,7 @@ fn flood_fill(starting: Point, map: &Map, visited: &mut Vec<bool>) -> WorldRoom 
                 continue;
             }
 
-            if map.tiles[neighbor_idx].sprite.eq(floor_stone().sprite) {
+            if map.tiles[neighbor_idx].sprite.eq(named_tile("Stone Floor").sprite) {
                 unvisited.push(neighbor);
             } else {
                 visited[neighbor_idx] = true; // mark any tile that isn't in the room nor walkable as visited

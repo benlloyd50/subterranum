@@ -21,7 +21,6 @@ mod fov;
 use fov::update_vision;
 mod actor;
 mod item;
-mod tiles;
 use actor::{render_entities, CharSprite, Player, Position};
 use menu::run_menu_systems;
 use messagelog::Message;

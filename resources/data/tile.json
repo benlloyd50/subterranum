@@ -1,0 +1,96 @@
+{
+    "all" : [
+        {
+            "name": "Stone Wall",
+            "is_transparent": false,
+            "is_blocking": true,
+            "sprite" : {
+                "glyph": "#",
+                "fg": "#F4A460",
+                "bg": "#8B2323"
+            },
+            "destructible_info": {
+                "by_what": "hand",
+                "hits": 4
+            },
+            "tile_type": "wall"
+        },
+        {
+            "name": "Adamantite Wall",
+            "is_transparent": false,
+            "is_blocking": true,
+            "sprite" : {
+                "glyph": "#",
+                "fg": "#F5F5F5",
+                "bg": "#912CEE"
+            },
+            "tile_type": "wall"
+        },
+        {
+            "name": "Up Stairs",
+            "is_transparent": true,
+            "is_blocking": false,
+            "sprite" : {
+                "glyph": "<",
+                "fg": "#F5F5F5",
+                "bg": "#000000"
+            },
+            "tile_type": "upstairs"
+        },
+        {
+            "name": "Down Stairs",
+            "is_transparent": true,
+            "is_blocking": false,
+            "sprite" : {
+                "glyph": ">",
+                "fg": "#F5F5F5",
+                "bg": "#000000"
+            },
+            "tile_type": "downstairs"
+        },
+        {
+            "name": "Deep Water",
+            "is_transparent": true,
+            "is_blocking": true,
+            "sprite" : {
+                "glyph": "~",
+                "fg": "#F5F5F5",
+                "bg": "#4169E1"
+            },
+            "tile_type": "water"
+        },
+        {
+            "name": "Stone Floor",
+            "is_transparent": true,
+            "is_blocking": false,
+            "sprite" : {
+                "glyph": ".",
+                "fg": "#F5F5F5",
+                "bg": "#778899"
+            },
+            "tile_type": "floor"
+        },
+        {
+            "name": "Grass Floor",
+            "is_transparent": true,
+            "is_blocking": false,
+            "sprite" : {
+                "glyph": ".",
+                "fg": "#F5F5F5",
+                "bg": "#228B22"
+            },
+            "tile_type": "floor"
+        },
+        {
+            "name": "Lush Brush",
+            "is_transparent": false,
+            "is_blocking": false,
+            "sprite" : {
+                "glyph": "½",
+                "fg": "#00CD00",
+                "bg": "#006400"
+            },
+            "tile_type": "special"
+        }
+    ]
+}
