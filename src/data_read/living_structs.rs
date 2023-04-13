@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 #[derive(Deserialize, Debug, Default)]
 pub struct LivingData {
-    pub all: Vec<Living>
+    pub all: Vec<Living>,
 }
 
 /// Used for regular living entities such as monsters, humans, good or bad, anything living that is

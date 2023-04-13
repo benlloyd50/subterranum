@@ -5,9 +5,10 @@ use bracket_terminal::prelude::*;
 use serde::Deserialize;
 
 use crate::{
+    data_read::named_tile,
     fov::ViewShed,
     map::{Destructible, Map, TileType},
-    BTerm, State, data_read::named_tile,
+    BTerm, State,
 };
 
 pub fn try_descend(map: &Map, player_pos: &Position) -> bool {
@@ -52,8 +53,10 @@ pub fn try_move(map: &mut Map, dest_tile: Position, pos: &mut Position, view: &m
                         map.tiles[idx] = named_tile("Grass Floor");
                     }
                 }
-                Destructible::Unbreakable => {},
-                Destructible::_ByPick { .. } => { unimplemented!("Pickaxe not ready for use")},
+                Destructible::Unbreakable => {}
+                Destructible::_ByPick { .. } => {
+                    unimplemented!("Pickaxe not ready for use")
+                }
             };
         }
     }

@@ -1,9 +1,9 @@
+use bracket_terminal::prelude::{PURPLE, RGB, WHITESMOKE};
 use hecs::EntityBuilder;
 use lazy_static::lazy_static;
 use serde::Deserialize;
 use serde_json::from_str;
 use std::{collections::HashMap, fs, sync::Mutex};
-use bracket_terminal::prelude::{PURPLE, RGB, WHITESMOKE};
 
 mod living_structs;
 use living_structs::LivingData;
@@ -13,7 +13,9 @@ use tile_structs::TileData;
 use crate::{
     actor::{CharSprite, Player, Position},
     fov::ViewShed,
-    monster::Breed, map::{WorldTile, Destructible, TileType}, item::Item,
+    item::Item,
+    map::{Destructible, TileType, WorldTile},
+    monster::Breed,
 };
 
 lazy_static! {
@@ -34,7 +36,7 @@ pub struct EntityDatabase {
 impl EntityDatabase {
     fn empty() -> Self {
         Self {
-            living: LivingData::default(), 
+            living: LivingData::default(),
             tiles: TileData::default(),
             living_index: HashMap::new(),
             tile_index: HashMap::new(),
@@ -68,7 +70,6 @@ pub fn load_data_for_entities() {
     let tile: TileData = from_str(&contents).expect("Bad JSON in tile.json fix it");
     entity_data.tiles = tile;
 
-
     ENTITY_DB.lock().unwrap().load(entity_data);
 }
 
@@ -83,7 +84,7 @@ pub fn named_tile(name: &str) -> WorldTile {
         return builder;
     }
     let tile_info = &edb.tiles.all[edb.tile_index[name]];
-    
+
     if let Some(is_blocking) = tile_info.is_blocking {
         builder.is_blocking = is_blocking;
     }
@@ -92,11 +93,17 @@ pub fn named_tile(name: &str) -> WorldTile {
     }
     if let Some(d_info) = &tile_info.destructible_info {
         builder.destructible = match d_info.by_what.as_str() {
-            "hand" => Destructible::ByHand { health: d_info.hits, dropped_item: Item {} },
-            "pickaxe" => Destructible::_ByPick { health: d_info.hits, dropped_item: Item {} },
+            "hand" => Destructible::ByHand {
+                health: d_info.hits,
+                dropped_item: Item {},
+            },
+            "pickaxe" => Destructible::_ByPick {
+                health: d_info.hits,
+                dropped_item: Item {},
+            },
             _ => Destructible::Unbreakable,
         };
-    } 
+    }
     if let Some(sprite) = &tile_info.sprite {
         let fg = RGB::from_hex(&sprite.fg).unwrap_or(RGB::named(PURPLE));
         let bg = RGB::from_hex(&sprite.bg).unwrap_or(RGB::named(WHITESMOKE));

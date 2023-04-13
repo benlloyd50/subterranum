@@ -1,13 +1,9 @@
 use bracket_terminal::prelude::*;
-use data_read::named_monster_builder;
-use gui::draw_gui;
 use hecs::*;
-use input::player_input;
-use serde::Deserialize;
 use std::{collections::HashMap, fs};
 
 mod data_read;
-use data_read::ENTITY_DB;
+use data_read::{named_monster_builder, ENTITY_DB};
 mod gui;
 mod map;
 mod menu;
@@ -15,92 +11,18 @@ mod messagelog;
 mod monster;
 mod prefab;
 mod worldgen;
-use map::{render_map, Map};
-use worldgen::{generate_map, move_to_new_floor};
-mod fov;
-use fov::update_vision;
+use map::Map;
+use worldgen::generate_map;
 mod actor;
+mod fov;
 mod item;
-use actor::{render_entities, CharSprite, Player, Position};
-use menu::run_menu_systems;
-use messagelog::Message;
-use monster::handle_monster_turns;
+use actor::{CharSprite, Player, Position};
+mod config;
 mod input;
 mod map_scanning;
+mod state;
 
-use crate::{data_read::load_data_for_entities, menu::MenuIndex};
-
-pub struct State {
-    world: World, // Holds all of our entities
-    map: Map,     // Holds the tiles to the world
-    // player_e: Entity // The player's entity for convienent lookup
-    runstate: RunState,
-    message_log: Vec<Message>,
-    config: Config,
-    turn_counter: usize,
-    generated_maps: HashMap<usize, Map>,
-}
-
-#[derive(Clone)]
-pub enum RunState {
-    InGame,
-    MainMenu(MenuIndex),
-    NextLevel(usize),
-}
-
-pub enum PlayerResponse {
-    StateChange(RunState),
-    TurnAdvance,
-    Waiting,
-}
-
-impl State {
-    /// Systems that are ran every frame, regardless of turn progression
-    fn run_continuous_systems(&mut self, ctx: &mut BTerm) {
-        ctx.cls();
-        update_vision(self);
-
-        render_map(ctx, &self.map, &self.config);
-        render_entities(ctx, self);
-
-        draw_gui(ctx, self);
-    }
-
-    /// Response systems are ran after a player inputs something that progresses a turn
-    fn run_response_systems(&mut self) {
-        handle_monster_turns(&mut self.world, &mut self.map, &mut self.message_log);
-    }
-}
-
-impl GameState for State {
-    fn tick(&mut self, ctx: &mut BTerm) {
-        let mut newstate = self.runstate.clone();
-
-        match newstate {
-            RunState::InGame => {
-                self.run_continuous_systems(ctx);
-
-                match player_input(self, ctx) {
-                    PlayerResponse::StateChange(new_state) => newstate = new_state,
-                    PlayerResponse::TurnAdvance => {
-                        self.turn_counter += 1;
-                        self.run_response_systems();
-                    }
-                    _ => {}
-                }
-            }
-            RunState::MainMenu(menu_idx) => {
-                newstate = run_menu_systems(self, ctx, menu_idx.0);
-            }
-            RunState::NextLevel(new_depth) => {
-                move_to_new_floor(self, new_depth);
-                newstate = RunState::InGame;
-            }
-        }
-
-        self.runstate = newstate;
-    }
-}
+use crate::{data_read::load_data_for_entities, menu::MenuIndex, state::{State, RunState}, messagelog::Message, config::Config};
 
 bracket_terminal::embedded_resource!(TILE_FONT, "../resources/RDE.png");
 bracket_terminal::embedded_resource!(CAVE_ENTRANCE, "../resources/rex/cave_entrance.xp");
@@ -183,29 +105,4 @@ pub fn start_new_game(world: &mut World, seed: u64) -> Map {
     }
 
     map
-}
-
-#[derive(Deserialize)]
-pub struct Config {
-    fullscreen: bool,
-    dev_mode: bool,
-    font_file: String,
-    font_size: usize,
-    screensize_x: usize,
-    screensize_y: usize,
-    world_seed: u64,
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            fullscreen: false,
-            dev_mode: false,
-            font_file: "Yayo.png".to_string(),
-            font_size: 8,
-            screensize_x: 120,
-            screensize_y: 80,
-            world_seed: 1,
-        }
-    }
 }

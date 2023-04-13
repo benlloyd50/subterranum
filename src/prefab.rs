@@ -6,7 +6,8 @@
 
 use crate::{
     actor::CharSprite,
-    map::{TileType, WorldTile}, data_read::named_tile,
+    data_read::named_tile,
+    map::{TileType, WorldTile},
 };
 use bracket_terminal::prelude::{XpFile, BLACK};
 

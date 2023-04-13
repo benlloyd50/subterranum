@@ -4,7 +4,7 @@ use super::living_structs::RawSprite;
 
 #[derive(Deserialize, Debug, Default)]
 pub struct TileData {
-    pub all: Vec<Tile>
+    pub all: Vec<Tile>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -14,7 +14,7 @@ pub struct Tile {
     pub is_blocking: Option<bool>,
     pub sprite: Option<RawSprite>,
     pub destructible_info: Option<DestructibleInfo>,
-    pub tile_type: Option<String>
+    pub tile_type: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
