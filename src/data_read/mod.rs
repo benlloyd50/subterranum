@@ -125,7 +125,7 @@ pub fn named_tile(name: &str) -> WorldTile {
     builder
 }
 
-pub fn named_monster_builder(edb: &EntityDatabase, name: &str, pos: Position) -> Option<EntityBuilder> {
+pub fn named_living_builder(edb: &EntityDatabase, name: &str, pos: Position) -> Option<EntityBuilder> {
     if !edb.living_index.contains_key(name) {
         return None;
     }

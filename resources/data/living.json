@@ -29,6 +29,26 @@
             },
             "view_range": 7,
             "breed": "Human"
+        },
+        {
+            "name": "Mole",
+            "sprite": {
+                "glyph": "m",
+                "fg": "#DE5D83",
+                "bg": "#41424C"
+            },
+            "view_range": 3,
+            "breed": "Mole"
+        },
+        {
+            "name": "Star Nosed Mole",
+            "sprite": {
+                "glyph": "m",
+                "fg": "#F88379",
+                "bg": "#41424C"
+            },
+            "view_range": 3,
+            "breed": "Mole"
         }
     ]
 }

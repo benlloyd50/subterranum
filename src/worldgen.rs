@@ -3,12 +3,13 @@ use crate::data_read::named_tile;
 use crate::map::{Map, TileType, WorldTile, MAP_HEIGHT, MAP_WIDTH};
 use crate::map_scanning::find_tile_from_type;
 use crate::prefab::{load_rex_room, xy_to_idx};
-use crate::State;
+use crate::{State, furnish_map};
 use bracket_noise::prelude::*;
 use bracket_pathfinding::prelude::Point;
 use bracket_random::prelude::*;
 use bracket_terminal::prelude::to_cp437;
 use hecs::With;
+use rand::seq::SliceRandom;
 use std::collections::VecDeque;
 
 #[derive(Debug, Clone)]
@@ -19,6 +20,13 @@ pub struct WorldRoom {
 impl WorldRoom {
     fn new() -> Self {
         Self { tiles: Vec::new() }
+    }
+
+    pub fn get_random_point(&self) -> Point {
+        match self.tiles.choose(&mut rand::thread_rng()) {
+            Some(pt) => *pt,
+            None => panic!("Could not get random point in room, were rooms culled?")
+        }
     }
 }
 
@@ -75,6 +83,10 @@ pub fn move_to_new_floor(state: &mut State, new_depth: usize) {
     };
 
     state.map = new_map;
+    // TODO:
+    // clean up old monsters
+    // furnish the new ones, no not with alcohol
+
     if let Some((_, player_pos)) = state.world.query::<With<&mut Position, &Player>>().iter().next() {
         *player_pos = new_player_pos;
     }

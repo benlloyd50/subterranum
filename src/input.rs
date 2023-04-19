@@ -1,7 +1,8 @@
 use crate::{
     actor::{try_ascend, try_descend, try_move, Player, Position},
     fov::ViewShed,
-    PlayerResponse, RunState, State,
+    state::PlayerResponse,
+    RunState, State,
 };
 use std::{cmp::max, process::exit};
 

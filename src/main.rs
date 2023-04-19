@@ -1,9 +1,10 @@
 use bracket_terminal::prelude::*;
 use hecs::*;
+use rand::{seq::SliceRandom, Rng};
 use std::{collections::HashMap, fs};
 
 mod data_read;
-use data_read::{named_monster_builder, ENTITY_DB};
+use data_read::{named_living_builder, ENTITY_DB};
 mod gui;
 mod map;
 mod menu;
@@ -92,17 +93,37 @@ fn main() -> BError {
 
 /// Creates a new map and setups world for the start of a fresh run
 pub fn start_new_game(world: &mut World, seed: u64) -> Map {
-    let cb = named_monster_builder(&ENTITY_DB.lock().unwrap(), "Centipede", Position::new(5, 9));
-    if let Some(mut cb) = cb {
-        world.spawn(cb.build());
-    }
+    let (mut map, player_start) = generate_map(seed, 0);
+    furnish_map(world, &mut map, player_start);
+    map
+}
 
-    let (map, player_start) = generate_map(seed, 0);
-
-    let player_builder = named_monster_builder(&ENTITY_DB.lock().unwrap(), "Player", player_start);
+fn furnish_map(world: &mut World, map: &mut Map, player_pos: Position) {
+    let player_builder = named_living_builder(&ENTITY_DB.lock().unwrap(), "Player", player_pos);
     if let Some(mut pb) = player_builder {
         world.spawn(pb.build());
     }
 
-    map
+    add_beings_to_rooms(world, map);
+}
+
+fn add_beings_to_rooms(world: &mut World, map: &mut Map) {
+    let monster_spawns_per_room = 5;
+
+    let beings = vec!["Centipede", "Mole", "Star Nosed Mole"];
+    for room in map.rooms.iter() {
+        for _ in 0..monster_spawns_per_room {
+            let chance: f32 = rand::thread_rng().gen();
+            if  chance > 0.8 {
+                continue;
+            }
+
+            let being_pos = room.get_random_point();
+            let being_name = beings.choose(&mut rand::thread_rng()).unwrap();
+            let e_builder = named_living_builder(&ENTITY_DB.lock().unwrap(), being_name, Position(being_pos));
+            if let Some(mut eb) = e_builder {
+                world.spawn(eb.build());
+            }
+        }
+    }
 }

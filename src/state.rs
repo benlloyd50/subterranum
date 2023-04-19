@@ -9,14 +9,14 @@ use crate::{
 };
 
 pub struct State {
-    world: World, // Holds all of our entities
-    map: Map,     // Holds the tiles to the world
+    pub world: World, // Holds all of our entities
+    pub map: Map,     // Holds the tiles to the world
     // player_e: Entity // The player's entity for convienent lookup
-    runstate: RunState,
-    message_log: Vec<Message>,
-    config: Config,
-    turn_counter: usize,
-    generated_maps: HashMap<usize, Map>,
+    pub runstate: RunState,
+    pub message_log: Vec<Message>,
+    pub config: Config,
+    pub turn_counter: usize,
+    pub generated_maps: HashMap<usize, Map>,
 }
 
 #[derive(Clone)]
