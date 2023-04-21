@@ -3,7 +3,7 @@ use crate::data_read::named_tile;
 use crate::map::{Map, TileType, WorldTile, MAP_HEIGHT, MAP_WIDTH};
 use crate::map_scanning::find_tile_from_type;
 use crate::prefab::{load_rex_room, xy_to_idx};
-use crate::{State, furnish_map};
+use crate::State;
 use bracket_noise::prelude::*;
 use bracket_pathfinding::prelude::Point;
 use bracket_random::prelude::*;
@@ -25,7 +25,7 @@ impl WorldRoom {
     pub fn get_random_point(&self) -> Point {
         match self.tiles.choose(&mut rand::thread_rng()) {
             Some(pt) => *pt,
-            None => panic!("Could not get random point in room, were rooms culled?")
+            None => panic!("Could not get random point in room, were rooms culled?"),
         }
     }
 }

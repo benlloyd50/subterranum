@@ -77,11 +77,11 @@ pub enum Rotation {
 }
 
 #[allow(dead_code)]
-fn rotate_room(prefab: &Prefab, rotation: &Rotation) -> Prefab {
+fn rotate_room(_prefab: &Prefab, _rotation: &Rotation) -> Prefab {
     todo!("Will do soon");
 }
 
 #[allow(dead_code)]
-fn rotate_ninety(vec: Vec<WorldTile>, width: usize, height: usize) -> Vec<WorldTile> {
+fn rotate_ninety(_vec: Vec<WorldTile>, _width: usize, _height: usize) -> Vec<WorldTile> {
     todo!("Will do sooner");
 }

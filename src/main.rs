@@ -23,7 +23,13 @@ mod input;
 mod map_scanning;
 mod state;
 
-use crate::{data_read::load_data_for_entities, menu::MenuIndex, state::{State, RunState}, messagelog::Message, config::Config};
+use crate::{
+    config::Config,
+    data_read::load_data_for_entities,
+    menu::MenuIndex,
+    messagelog::Message,
+    state::{RunState, State},
+};
 
 bracket_terminal::embedded_resource!(TILE_FONT, "../resources/RDE.png");
 bracket_terminal::embedded_resource!(CAVE_ENTRANCE, "../resources/rex/cave_entrance.xp");
@@ -114,7 +120,7 @@ fn add_beings_to_rooms(world: &mut World, map: &mut Map) {
     for room in map.rooms.iter() {
         for _ in 0..monster_spawns_per_room {
             let chance: f32 = rand::thread_rng().gen();
-            if  chance > 0.8 {
+            if chance > 0.8 {
                 continue;
             }
 

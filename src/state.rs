@@ -4,8 +4,16 @@ use bracket_terminal::prelude::{BTerm, GameState};
 use hecs::World;
 
 use crate::{
-    actor::render_entities, fov::update_vision, gui::draw_gui, input::player_input, map::{render_map, Map},
-    menu::{run_menu_systems, MenuIndex}, messagelog::Message, monster::handle_monster_turns, worldgen::move_to_new_floor, config::Config,
+    actor::render_entities,
+    config::Config,
+    fov::update_vision,
+    gui::draw_gui,
+    input::player_input,
+    map::{render_map, Map},
+    menu::{run_menu_systems, MenuIndex},
+    messagelog::Message,
+    monster::handle_monster_turns,
+    worldgen::move_to_new_floor,
 };
 
 pub struct State {
