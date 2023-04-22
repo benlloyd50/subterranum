@@ -142,7 +142,7 @@ pub fn named_living_builder(edb: &EntityDatabase, name: &str, pos: Position) -> 
     }
 
     if let Some(breed) = &monster_info.breed {
-        eb.add(Breed::from(breed));
+        eb.add(Breed::from(name, breed));
     }
 
     if let Some(view_distance) = &monster_info.view_range {

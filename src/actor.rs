@@ -31,7 +31,7 @@ pub fn try_ascend(map: &Map, player_pos: &Position, depth: usize, delta: usize) 
 
 /// Attempts to move an entity's position given it is allowed to move there
 /// Returns true if successful in moving
-pub fn try_move(map: &mut Map, dest_tile: Position, pos: &mut Position, view: &mut ViewShed) -> bool {
+pub fn try_move(map: &mut Map, dest_tile: &Position, pos: &mut Position, view: &mut ViewShed) -> bool {
     let idx = dest_tile.0.to_index(map.width);
     if !map.within_bounds(dest_tile.0) {
         return false;
@@ -39,7 +39,7 @@ pub fn try_move(map: &mut Map, dest_tile: Position, pos: &mut Position, view: &m
     if let Some(mut tile) = map.tiles.get_mut(idx) {
         view.dirty = true; // make it dirty so the vision is updated definitely
         if !tile.is_blocking {
-            *pos = dest_tile;
+            *pos = dest_tile.clone();
             return true;
         } else {
             match tile.destructible {

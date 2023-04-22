@@ -23,34 +23,41 @@ pub fn handle_monster_turns(world: &mut World, map: &mut Map, msg_log: &mut Vec<
                 msg_log.push(Message::new(format!("{}: Poke", breed.name)));
                 continue;
             }
+            let tile_idx = pos.0.to_index(map.width);
 
+            map.tiles[tile_idx].is_blocking = true;
             if view.visible_tiles.contains(&player_pos.0) {
-                let path = a_star_search(pos.0.to_index(map.width), player_idx, map);
+                let path = a_star_search(tile_idx, player_idx, map);
                 if path.success && path.steps.len() > 1 {
                     let next_pos = map.idx_to_pos(path.steps[1]);
-                    if try_move(map, next_pos, pos, view) {
+                    if try_move(map, &next_pos, pos, view) {
+                        map.tiles[tile_idx].is_blocking = false;
+                        map.tiles[next_pos.0.to_index(map.width)].is_blocking = true;
                         continue;
                     }
                 }
+            } else {
+                let mut new_pos = pos.clone();
+                match random::<u8>() % 4 {
+                    0 => {
+                        new_pos.0.x += 1;
+                    }
+                    1 => {
+                        new_pos.0.x = max(new_pos.x() - 1, 0);
+                    }
+                    2 => {
+                        new_pos.0.y += 1;
+                    }
+                    3 => {
+                        new_pos.0.y = max(new_pos.y() - 1, 0);
+                    }
+                    _ => {}
+                }
+                try_move(map, &new_pos, pos, view);
+                map.tiles[tile_idx].is_blocking = false;
+                map.tiles[new_pos.0.to_index(map.width)].is_blocking = true;
             }
 
-            let mut new_pos = pos.clone();
-            match random::<u8>() % 4 {
-                0 => {
-                    new_pos.0.x += 1;
-                }
-                1 => {
-                    new_pos.0.x = max(new_pos.x() - 1, 0);
-                }
-                2 => {
-                    new_pos.0.y += 1;
-                }
-                3 => {
-                    new_pos.0.y = max(new_pos.y() - 1, 0);
-                }
-                _ => {}
-            }
-            try_move(map, new_pos, pos, view);
         }
     }
 }
@@ -58,10 +65,11 @@ pub fn handle_monster_turns(world: &mut World, map: &mut Map, msg_log: &mut Vec<
 /// General info about the type of monster/creature
 pub struct Breed {
     name: String,
+    species: String,
 }
 
 impl Breed {
-    pub fn from(name: impl ToString) -> Self {
-        Self { name: name.to_string() }
+    pub fn from(name: impl ToString, species: impl ToString) -> Self {
+        Self { name: name.to_string(), species: species.to_string() }
     }
 }

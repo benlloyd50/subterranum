@@ -26,39 +26,39 @@ pub fn player_input(state: &mut State, ctx: &mut BTerm) -> PlayerResponse {
             match key {
                 VirtualKeyCode::Up | VirtualKeyCode::K => {
                     dest_pos.0.y = max(dest_pos.y() - 1, 0);
-                    should_respond = try_move(&mut state.map, dest_pos, pos, view);
+                    should_respond = try_move(&mut state.map, &dest_pos, pos, view);
                 }
                 VirtualKeyCode::Down | VirtualKeyCode::J => {
                     dest_pos.0.y += 1;
-                    should_respond = try_move(&mut state.map, dest_pos, pos, view);
+                    should_respond = try_move(&mut state.map, &dest_pos, pos, view);
                 }
                 VirtualKeyCode::Left | VirtualKeyCode::H => {
                     dest_pos.0.x = max(dest_pos.x() - 1, 0);
-                    should_respond = try_move(&mut state.map, dest_pos, pos, view);
+                    should_respond = try_move(&mut state.map, &dest_pos, pos, view);
                 }
                 VirtualKeyCode::Right | VirtualKeyCode::L => {
                     dest_pos.0.x += 1;
-                    should_respond = try_move(&mut state.map, dest_pos, pos, view);
+                    should_respond = try_move(&mut state.map, &dest_pos, pos, view);
                 }
                 VirtualKeyCode::Y => {
                     dest_pos.0.x = max(dest_pos.x() - 1, 0);
                     dest_pos.0.y = max(dest_pos.y() - 1, 0);
-                    should_respond = try_move(&mut state.map, dest_pos, pos, view);
+                    should_respond = try_move(&mut state.map, &dest_pos, pos, view);
                 }
                 VirtualKeyCode::U => {
                     dest_pos.0.x += 1;
                     dest_pos.0.y = max(dest_pos.y() - 1, 0);
-                    should_respond = try_move(&mut state.map, dest_pos, pos, view);
+                    should_respond = try_move(&mut state.map, &dest_pos, pos, view);
                 }
                 VirtualKeyCode::N => {
                     dest_pos.0.x = max(dest_pos.x() - 1, 0);
                     dest_pos.0.y += 1;
-                    should_respond = try_move(&mut state.map, dest_pos, pos, view);
+                    should_respond = try_move(&mut state.map, &dest_pos, pos, view);
                 }
                 VirtualKeyCode::M => {
                     dest_pos.0.x += 1;
                     dest_pos.0.y += 1;
-                    should_respond = try_move(&mut state.map, dest_pos, pos, view);
+                    should_respond = try_move(&mut state.map, &dest_pos, pos, view);
                 }
                 VirtualKeyCode::Comma => {
                     let depth = state.map.depth - 1;
