@@ -40,6 +40,7 @@ pub fn generate_map(seed: u64, depth: usize) -> (Map, Position) {
         tiles: vec![named_tile("Stone Wall"); width * height],
         visible: vec![false; width * height],
         discovered: vec![false; width * height],
+        beings: vec![None; width * height],
         rooms: Vec::new(),
         width,
         height,

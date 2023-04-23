@@ -1,6 +1,7 @@
 /* Map.rs is the map generation code and data structures to hold information about the map
  */
 use crate::{actor::Position, item::Item, worldgen::WorldRoom, CharSprite, Config};
+use hecs::Entity;
 use bracket_pathfinding::prelude::{Algorithm2D, BaseMap, DistanceAlg, SmallVec};
 use bracket_terminal::prelude::{BTerm, Point, PURPLE, WHITESMOKE};
 
@@ -13,6 +14,7 @@ pub struct Map {
     pub rooms: Vec<WorldRoom>,
     pub visible: Vec<bool>,
     pub discovered: Vec<bool>,
+    pub beings: Vec<Option<Entity>>,
     pub width: usize,
     pub height: usize,
     pub depth: usize,
@@ -53,6 +55,7 @@ impl Map {
             rooms: Vec::new(),
             visible: Vec::new(),
             discovered: Vec::new(),
+            beings: Vec::new(),
             width: 100,
             height: 70,
             depth: 0,

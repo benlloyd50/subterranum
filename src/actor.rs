@@ -3,6 +3,7 @@
 */
 use bracket_terminal::prelude::*;
 use serde::Deserialize;
+use hecs::Entity;
 
 use crate::{
     data_read::named_tile,
@@ -31,15 +32,22 @@ pub fn try_ascend(map: &Map, player_pos: &Position, depth: usize, delta: usize) 
 
 /// Attempts to move an entity's position given it is allowed to move there
 /// Returns true if successful in moving
-pub fn try_move(map: &mut Map, dest_tile: &Position, pos: &mut Position, view: &mut ViewShed) -> bool {
-    let idx = dest_tile.0.to_index(map.width);
+pub fn try_move(map: &mut Map, dest_tile: &Position, pos: &mut Position, view: &mut ViewShed, who: Option<Entity>) -> bool {
     if !map.within_bounds(dest_tile.0) {
         return false;
     }
-    if let Some(mut tile) = map.tiles.get_mut(idx) {
+
+    let dest_idx = dest_tile.0.to_index(map.width);
+    if let Some(_) = map.beings[dest_idx] { // if someone is already in that spot then you cant move there
+        return false;
+    }
+    if let Some(mut tile) = map.tiles.get_mut(dest_idx) {
         view.dirty = true; // make it dirty so the vision is updated definitely
         if !tile.is_blocking {
+            let idx = pos.0.to_index(map.width);
             *pos = dest_tile.clone();
+            map.beings[idx] = None;
+            map.beings[dest_idx] = who;
             return true;
         } else {
             match tile.destructible {
@@ -50,7 +58,7 @@ pub fn try_move(map: &mut Map, dest_tile: &Position, pos: &mut Position, view: &
                     health -= 1;
                     tile.destructible = Destructible::ByHand { health, dropped_item };
                     if health == 0 {
-                        map.tiles[idx] = named_tile("Grass Floor");
+                        map.tiles[dest_idx] = named_tile("Grass Floor");
                     }
                 }
                 Destructible::Unbreakable => {}

@@ -15,7 +15,7 @@ pub fn handle_monster_turns(world: &mut World, map: &mut Map, msg_log: &mut Vec<
     if let Some((_, player_pos)) = world.query::<With<&Position, &Player>>().iter().next() {
         let player_idx = player_pos.0.to_index(map.width);
 
-        for (_, (pos, view, breed)) in world.query::<(&mut Position, &mut ViewShed, &Breed)>().iter() {
+        for (e, (pos, view, breed)) in world.query::<(&mut Position, &mut ViewShed, &Breed)>().iter() {
             //TODO: how can i encapsulate this behavior and vary it for different monsters/entities
             let dist_to_player = DistanceAlg::Pythagoras.distance2d(player_pos.0, pos.0);
 
@@ -29,7 +29,7 @@ pub fn handle_monster_turns(world: &mut World, map: &mut Map, msg_log: &mut Vec<
                 let path = a_star_search(tile_idx, player_idx, map);
                 if path.success && path.steps.len() > 1 {
                     let next_pos = map.idx_to_pos(path.steps[1]);
-                    if try_move(map, &next_pos, pos, view) {
+                    if try_move(map, &next_pos, pos, view, Some(e)) {
                         continue;
                     }
                 }
@@ -50,7 +50,7 @@ pub fn handle_monster_turns(world: &mut World, map: &mut Map, msg_log: &mut Vec<
                     }
                     _ => {}
                 }
-                try_move(map, &new_pos, pos, view);
+                try_move(map, &new_pos, pos, view, Some(e));
             }
         }
     }
@@ -60,14 +60,14 @@ pub fn handle_monster_turns(world: &mut World, map: &mut Map, msg_log: &mut Vec<
 #[derive(Clone)]
 pub struct Breed {
     name: String,
-    species: String,
+    _species: String,
 }
 
 impl Breed {
     pub fn from(name: impl ToString, species: impl ToString) -> Self {
         Self {
             name: name.to_string(),
-            species: species.to_string(),
+            _species: species.to_string(),
         }
     }
 }
