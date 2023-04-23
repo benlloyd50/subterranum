@@ -100,16 +100,15 @@ fn main() -> BError {
 /// Creates a new map and setups world for the start of a fresh run
 pub fn start_new_game(world: &mut World, seed: u64) -> Map {
     let (mut map, player_start) = generate_map(seed, 0);
-    furnish_map(world, &mut map, player_start);
-    map
-}
-
-fn furnish_map(world: &mut World, map: &mut Map, player_pos: Position) {
-    let player_builder = named_living_builder(&ENTITY_DB.lock().unwrap(), "Player", player_pos);
+    let player_builder = named_living_builder(&ENTITY_DB.lock().unwrap(), "Player", player_start);
     if let Some(mut pb) = player_builder {
         world.spawn(pb.build());
     }
+    furnish_map(world, &mut map);
+    map
+}
 
+fn furnish_map(world: &mut World, map: &mut Map) {
     add_beings_to_rooms(world, map);
 }
 

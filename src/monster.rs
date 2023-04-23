@@ -25,14 +25,11 @@ pub fn handle_monster_turns(world: &mut World, map: &mut Map, msg_log: &mut Vec<
             }
             let tile_idx = pos.0.to_index(map.width);
 
-            map.tiles[tile_idx].is_blocking = true;
             if view.visible_tiles.contains(&player_pos.0) {
                 let path = a_star_search(tile_idx, player_idx, map);
                 if path.success && path.steps.len() > 1 {
                     let next_pos = map.idx_to_pos(path.steps[1]);
                     if try_move(map, &next_pos, pos, view) {
-                        map.tiles[tile_idx].is_blocking = false;
-                        map.tiles[next_pos.0.to_index(map.width)].is_blocking = true;
                         continue;
                     }
                 }
@@ -54,15 +51,13 @@ pub fn handle_monster_turns(world: &mut World, map: &mut Map, msg_log: &mut Vec<
                     _ => {}
                 }
                 try_move(map, &new_pos, pos, view);
-                map.tiles[tile_idx].is_blocking = false;
-                map.tiles[new_pos.0.to_index(map.width)].is_blocking = true;
             }
-
         }
     }
 }
 
 /// General info about the type of monster/creature
+#[derive(Clone)]
 pub struct Breed {
     name: String,
     species: String,
@@ -70,6 +65,9 @@ pub struct Breed {
 
 impl Breed {
     pub fn from(name: impl ToString, species: impl ToString) -> Self {
-        Self { name: name.to_string(), species: species.to_string() }
+        Self {
+            name: name.to_string(),
+            species: species.to_string(),
+        }
     }
 }
