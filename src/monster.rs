@@ -2,19 +2,28 @@ use bracket_pathfinding::prelude::{a_star_search, DistanceAlg};
 use rand::random;
 use std::cmp::max;
 
-use hecs::{With, Entity};
+use hecs::{Entity, With};
 
 use crate::{
     actor::{try_move, MoveResult, Player, Position},
     fov::ViewShed,
-    Message, State, map::Map,
+    map::Map,
+    Message, State,
 };
 
 pub fn handle_monster_turns(state: &mut State) {
     if let Some((_, player_pos)) = &mut state.world.query::<With<&Position, &Player>>().iter().next() {
         for (e, (pos, view, breed)) in state.world.query::<(&mut Position, &mut ViewShed, &mut Breed)>().iter() {
             //TODO: how can i encapsulate this behavior and vary it for different monsters/entities
-            let move_state = (e, pos, view, player_pos.clone(), &mut state.map, state.turn_counter, &mut state.message_log);
+            let move_state = (
+                e,
+                pos,
+                view,
+                player_pos.clone(),
+                &mut state.map,
+                state.turn_counter,
+                &mut state.message_log,
+            );
             breed.perform_move(move_state);
         }
     }
@@ -46,14 +55,36 @@ impl Breed {
         }
     }
 
-    fn perform_move(&mut self, move_state: (Entity, &mut Position, &mut ViewShed, Position, &mut Map, usize, &mut Vec<Message>)) {
+    fn perform_move(
+        &mut self,
+        move_state: (
+            Entity,
+            &mut Position,
+            &mut ViewShed,
+            Position,
+            &mut Map,
+            usize,
+            &mut Vec<Message>,
+        ),
+    ) {
         match self.ai {
             BeingAI::BasicPoke => simple_ai(self, move_state),
         }
     }
 }
 
-fn simple_ai(breed: &Breed, (me, pos, view, player_pos, map, turn_counter, message_log): (Entity, &mut Position, &mut ViewShed, Position, &mut Map, usize, &mut Vec<Message>)) {
+fn simple_ai(
+    breed: &Breed,
+    (me, pos, view, player_pos, map, turn_counter, message_log): (
+        Entity,
+        &mut Position,
+        &mut ViewShed,
+        Position,
+        &mut Map,
+        usize,
+        &mut Vec<Message>,
+    ),
+) {
     let dist_to_player = DistanceAlg::Pythagoras.distance2d(player_pos.0, pos.0);
     if dist_to_player < 1.5 {
         message_log.push(Message::new(format!("{}: Poke", breed.name), turn_counter));

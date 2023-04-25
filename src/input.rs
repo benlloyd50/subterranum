@@ -68,7 +68,8 @@ pub fn player_input(state: &mut State, ctx: &mut BTerm) -> PlayerResponse {
                     MoveResult::Attack(target) => {
                         if let Ok(mut defender) = state.world.query_one::<(&mut CombatStats, &Breed)>(target) {
                             if let Some(defender) = defender.get() {
-                                let damage_stmt = attack((defender.0, defender.1.name.clone()), (attacker_stats, name.0.clone()));
+                                let damage_stmt =
+                                    attack((defender.0, defender.1.name.clone()), (attacker_stats, name.0.clone()));
                                 state.message_log.push(Message::new(damage_stmt, turn_sent));
                             }
                         } // Prevents stale enemies from being double despawned

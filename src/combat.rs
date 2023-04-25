@@ -1,9 +1,6 @@
 use hecs::{Entity, World};
 
-use crate::{
-    actor::Position,
-    map::Map,
-};
+use crate::{actor::Position, map::Map};
 
 /// Stats that are used for damage calculation
 pub struct CombatStats {
@@ -23,11 +20,18 @@ impl CombatStats {
 }
 
 /// Attacks a defender by modifying health components
-pub fn attack((defender, d_name): (&mut CombatStats, impl ToString), (attacker, a_name): (&CombatStats, impl ToString)) -> String {
+pub fn attack(
+    (defender, d_name): (&mut CombatStats, impl ToString),
+    (attacker, a_name): (&CombatStats, impl ToString),
+) -> String {
     let damage_given = (attacker.strength - defender.defense).abs();
     let new_hp = defender.health.saturating_sub(damage_given as u32);
     defender.health = new_hp;
-    format!("{0:?} took {damage_given} hp from {1}", d_name.to_string(), a_name.to_string())
+    format!(
+        "{0:?} took {damage_given} hp from {1}",
+        d_name.to_string(),
+        a_name.to_string()
+    )
 }
 
 /// Iterates all beings with health and if health is 0 then it is destroyed

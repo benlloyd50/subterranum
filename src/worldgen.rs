@@ -1,7 +1,7 @@
 use crate::actor::{Player, Position};
 use crate::data_read::named_tile;
 use crate::map::{Map, TileType, WorldTile, MAP_HEIGHT, MAP_WIDTH};
-use crate::map_scanning::find_tile_from_type;
+use crate::map_scanning::{find_tile_from_type, wall_glyph};
 use crate::monster::Breed;
 use crate::prefab::{load_rex_room, xy_to_idx};
 use crate::{furnish_map, State};
@@ -63,7 +63,20 @@ pub fn generate_map(seed: u64, depth: usize) -> (Map, Position) {
     place_tile_in_random_room(&mut map, &mut rng, named_tile("Down Stairs"));
     brush_spawn(&mut map, &mut rng);
 
+    pretty_walls(&mut map);
+
     (map, player_spawn)
+}
+
+fn pretty_walls(map: &mut Map) {
+    for idx in 0..map.tiles.len() {
+        let mut tile = map.tiles[idx];
+        if tile.tile_type == TileType::Wall {
+            let Position(Point { x, y }) = map.idx_to_pos(idx);
+            tile.sprite.glyph = wall_glyph(map, x as usize, y as usize);
+        }
+        map.tiles[idx] = tile;
+    }
 }
 
 /// Moves to another floor and cleans up old floor
@@ -91,6 +104,8 @@ pub fn move_to_new_floor(state: &mut State, new_depth: usize) {
 
     // furnish the new ones, no not with alcohol. this means monsters respawn so stair spamming has consequences
     furnish_map(&mut state.world, &mut state.map);
+
+    pretty_walls(&mut state.map);
 }
 
 /// Helper for despawning all entities with a Breed and Position component
