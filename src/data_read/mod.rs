@@ -9,19 +9,27 @@ mod living_structs;
 use living_structs::LivingData;
 mod tile_structs;
 use tile_structs::TileData;
+mod perlin_structs;
 
 use crate::{
     actor::{CharSprite, Name, Player, Position},
     combat::CombatStats,
-    fov::ViewShed,
     item::Item,
     map::{Destructible, TileType, WorldTile},
-    monster::Breed,
+    monster::Breed, fov::ViewShed,
 };
 
 lazy_static! {
     pub static ref ENTITY_DB: Mutex<EntityDatabase> = Mutex::new(EntityDatabase::empty());
+    // pub static ref PERLIN_NOISE: Mutex<PerlinNoise> = Mutex::new();
 }
+
+// Basically make this a list or something, i only need it when i generate a new map
+// i could just read it in from file rather than hold on to it
+// #[derive(Deserialize, Debug)]
+// pub struct PerlinNoise {
+//     settings: PerlinSettings
+// }
 
 #[derive(Deserialize, Debug)]
 pub struct EntityDatabase {

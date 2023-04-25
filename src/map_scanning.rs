@@ -26,6 +26,7 @@ pub fn pretty_walls(map: &mut Map) {
 
 // const INNER_BORDER_TILE: u16 = 32;
 static VARIETY_TILE: [u16; 4] = [96, 32, 35, 39];
+static UPPER_WALL: u16 = 178;
 fn wall_glyph(map: &Map, x: usize, y: usize) -> FontCharType {
     let mut mask: u8 = 0;
 
@@ -48,15 +49,15 @@ fn wall_glyph(map: &Map, x: usize, y: usize) -> FontCharType {
         2 => { 186 } // Wall only to the south
         3 => { 186 } // Wall to the north and south
         4 => { 205 } // Wall only to the west
-        5 => { 188 } // Wall to the north and west
+        5 => { UPPER_WALL } // Wall to the north and west
         6 => { 187 } // Wall to the south and west
         7 => { 185 } // Wall to the north, south and west
         8 => { 205 } // Wall only to the east
-        9 => { 200 } // Wall to the north and east
+        9 => { UPPER_WALL } // Wall to the north and east
         10 => { 201 } // Wall to the south and east
         11 => { 204 } // Wall to the north, south and east
         12 => { 205 } // Wall to the east and west
-        13 => { 202 } // Wall to the east, west, and south
+        13 => { UPPER_WALL } // Wall to the east, west, and south
         14 => { 203 } // Wall to the east, west, and north
         _ => {
             let idx = rand::thread_rng().gen::<usize>() % VARIETY_TILE.len();
