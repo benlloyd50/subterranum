@@ -93,8 +93,6 @@ pub fn render_entities(ctx: &mut BTerm, state: &State) {
     }
 }
 
-pub struct DeathMark;
-
 /// Tag Component that marks the player entity
 #[derive(Deserialize, Debug)]
 pub struct Player;

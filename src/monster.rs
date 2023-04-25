@@ -2,59 +2,20 @@ use bracket_pathfinding::prelude::{a_star_search, DistanceAlg};
 use rand::random;
 use std::cmp::max;
 
-use hecs::With;
+use hecs::{With, Entity};
 
 use crate::{
     actor::{try_move, MoveResult, Player, Position},
     fov::ViewShed,
-    Message, State,
+    Message, State, map::Map,
 };
 
 pub fn handle_monster_turns(state: &mut State) {
-    let width = state.map.width;
-    let turn = state.turn_counter;
     if let Some((_, player_pos)) = &mut state.world.query::<With<&Position, &Player>>().iter().next() {
-        let player_idx = player_pos.0.to_index(width);
-
-        for (e, (pos, view, breed)) in state.world.query::<(&mut Position, &mut ViewShed, &Breed)>().iter() {
+        for (e, (pos, view, breed)) in state.world.query::<(&mut Position, &mut ViewShed, &mut Breed)>().iter() {
             //TODO: how can i encapsulate this behavior and vary it for different monsters/entities
-            let dist_to_player = DistanceAlg::Pythagoras.distance2d(player_pos.0, pos.0);
-            if dist_to_player < 1.5 {
-                state
-                    .message_log
-                    .push(Message::new(format!("{}: Poke", breed.name), turn));
-                continue;
-            }
-            let tile_idx = pos.0.to_index(width);
-
-            if view.visible_tiles.contains(&player_pos.0) {
-                let path = a_star_search(tile_idx, player_idx, &state.map);
-                if path.success && path.steps.len() > 1 {
-                    let next_pos = state.map.idx_to_pos(path.steps[1]);
-                    match try_move(&mut state.map, &next_pos, pos, view, e) {
-                        MoveResult::Acted(_) => continue,
-                        _ => {}
-                    }
-                }
-            } else {
-                let mut new_pos = pos.clone();
-                match random::<u8>() % 4 {
-                    0 => {
-                        new_pos.0.x += 1;
-                    }
-                    1 => {
-                        new_pos.0.x = max(new_pos.x() - 1, 0);
-                    }
-                    2 => {
-                        new_pos.0.y += 1;
-                    }
-                    3 => {
-                        new_pos.0.y = max(new_pos.y() - 1, 0);
-                    }
-                    _ => {}
-                }
-                try_move(&mut state.map, &new_pos, pos, view, e);
-            }
+            let move_state = (e, pos, view, player_pos.clone(), &mut state.map, state.turn_counter, &mut state.message_log);
+            breed.perform_move(move_state);
         }
     }
 }
@@ -72,8 +33,6 @@ pub enum BeingAI {
     BasicPoke, // Simplest AI being able to wander, follow the player if they are visible, and poke the player
 }
 
-impl BeingAI {}
-
 impl Breed {
     pub fn from(name: impl ToString, species: impl ToString, ai: impl ToString) -> Self {
         let ai = match ai.to_string().as_str() {
@@ -85,5 +44,49 @@ impl Breed {
             _species: species.to_string(),
             ai,
         }
+    }
+
+    fn perform_move(&mut self, move_state: (Entity, &mut Position, &mut ViewShed, Position, &mut Map, usize, &mut Vec<Message>)) {
+        match self.ai {
+            BeingAI::BasicPoke => simple_ai(self, move_state),
+        }
+    }
+}
+
+fn simple_ai(breed: &Breed, (me, pos, view, player_pos, map, turn_counter, message_log): (Entity, &mut Position, &mut ViewShed, Position, &mut Map, usize, &mut Vec<Message>)) {
+    let dist_to_player = DistanceAlg::Pythagoras.distance2d(player_pos.0, pos.0);
+    if dist_to_player < 1.5 {
+        message_log.push(Message::new(format!("{}: Poke", breed.name), turn_counter));
+        return;
+    }
+    let tile_idx = pos.0.to_index(map.width);
+
+    if view.visible_tiles.contains(&player_pos.0) {
+        let path = a_star_search(tile_idx, player_pos.0.to_index(map.width), map);
+        if path.success && path.steps.len() > 1 {
+            let next_pos = map.idx_to_pos(path.steps[1]);
+            match try_move(map, &next_pos, pos, view, me) {
+                MoveResult::Acted(_) => return,
+                _ => {}
+            }
+        }
+    } else {
+        let mut new_pos = pos.clone();
+        match random::<u8>() % 4 {
+            0 => {
+                new_pos.0.x += 1;
+            }
+            1 => {
+                new_pos.0.x = max(new_pos.x() - 1, 0);
+            }
+            2 => {
+                new_pos.0.y += 1;
+            }
+            3 => {
+                new_pos.0.y = max(new_pos.y() - 1, 0);
+            }
+            _ => {}
+        }
+        try_move(map, &new_pos, pos, view, me);
     }
 }

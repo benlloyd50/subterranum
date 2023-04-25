@@ -1,9 +1,8 @@
 use hecs::{Entity, World};
 
 use crate::{
-    actor::{Name, Position},
+    actor::Position,
     map::Map,
-    monster::Breed,
 };
 
 /// Stats that are used for damage calculation
