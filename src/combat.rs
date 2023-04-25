@@ -2,7 +2,7 @@ use hecs::{Entity, World};
 
 use crate::{
     actor::{Name, Position},
-    map::{self, Map},
+    map::{Map},
     monster::Breed,
 };
 

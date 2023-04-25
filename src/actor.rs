@@ -2,15 +2,13 @@
    This file defines the components and systems commonly used by them.
 */
 use bracket_terminal::prelude::*;
-use hecs::{Entity, World};
+use hecs::{Entity};
 use serde::Deserialize;
 
 use crate::{
-    combat::CombatStats,
     data_read::named_tile,
     fov::ViewShed,
     map::{Destructible, Map, TileType},
-    monster::Breed,
     BTerm, State,
 };
 
