@@ -25,6 +25,7 @@ Major.Minor.Patch
     - block each other and player
     - changable and interchangable ai behavior
     - attackable with health component
+- Player health
 - Saving / Loading
 
 ### 0.3 - Core Idea
@@ -44,9 +45,9 @@ Major.Minor.Patch
 
 ### 0.6 - World Generation
 
-### 0.7 -
+### 0.7 - Classes, Races, Stats Overhaul
 
-### 0.8 -
+### 0.8 - 
 
 ### 0.9 - Sounds & Music
 
