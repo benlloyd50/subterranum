@@ -1,9 +1,9 @@
 /* Map.rs is the map generation code and data structures to hold information about the map
  */
 use crate::{actor::Position, item::Item, worldgen::WorldRoom, CharSprite, Config};
-use hecs::Entity;
 use bracket_pathfinding::prelude::{Algorithm2D, BaseMap, DistanceAlg, SmallVec};
 use bracket_terminal::prelude::{BTerm, Point, PURPLE, WHITESMOKE};
+use hecs::Entity;
 
 pub const MAP_WIDTH: usize = 100;
 pub const MAP_HEIGHT: usize = 70;

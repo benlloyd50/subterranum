@@ -5,6 +5,7 @@ use hecs::World;
 
 use crate::{
     actor::render_entities,
+    combat::destroy_dead_beings,
     config::Config,
     fov::update_vision,
     gui::draw_gui,
@@ -52,9 +53,14 @@ impl State {
         draw_gui(ctx, self);
     }
 
+    /// Systems that are ran at the end after the response systems run
+    fn run_post_response_systems(&mut self) {
+        destroy_dead_beings(&mut self.world, &mut self.map);
+    }
+
     /// Response systems are ran after a player inputs something that progresses a turn
     fn run_response_systems(&mut self) {
-        handle_monster_turns(&mut self.world, &mut self.map, &mut self.message_log);
+        handle_monster_turns(self);
     }
 }
 
@@ -71,6 +77,7 @@ impl GameState for State {
                     PlayerResponse::TurnAdvance => {
                         self.turn_counter += 1;
                         self.run_response_systems();
+                        self.run_post_response_systems();
                     }
                     _ => {}
                 }

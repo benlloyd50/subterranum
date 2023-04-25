@@ -2,22 +2,20 @@
    This file defines the components and systems commonly used by them.
 */
 use bracket_terminal::prelude::*;
+use hecs::{Entity, World};
 use serde::Deserialize;
-use hecs::Entity;
 
 use crate::{
+    combat::CombatStats,
     data_read::named_tile,
     fov::ViewShed,
     map::{Destructible, Map, TileType},
+    monster::Breed,
     BTerm, State,
 };
 
 pub fn try_descend(map: &Map, player_pos: &Position) -> bool {
-    if map.tiles[player_pos.0.to_index(map.width)].tile_type == TileType::DownStairs {
-        true
-    } else {
-        false
-    }
+    map.tiles[player_pos.0.to_index(map.width)].tile_type == TileType::DownStairs
 }
 
 pub fn try_ascend(map: &Map, player_pos: &Position, depth: usize, delta: usize) -> bool {
@@ -30,25 +28,39 @@ pub fn try_ascend(map: &Map, player_pos: &Position, depth: usize, delta: usize) 
     }
 }
 
+pub enum MoveResult {
+    Acted(String),
+    Attack(Entity),
+    // Mine(),
+    InvalidMove(String),
+}
+
 /// Attempts to move an entity's position given it is allowed to move there
 /// Returns true if successful in moving
-pub fn try_move(map: &mut Map, dest_tile: &Position, pos: &mut Position, view: &mut ViewShed, who: Option<Entity>) -> bool {
+pub fn try_move(
+    map: &mut Map,
+    dest_tile: &Position,
+    pos: &mut Position,
+    view: &mut ViewShed,
+    who: Entity, // the entity that is moving
+) -> MoveResult {
     if !map.within_bounds(dest_tile.0) {
-        return false;
+        return MoveResult::InvalidMove(format!("{},{} is out of bounds", dest_tile.0.x, dest_tile.0.y));
     }
 
     let dest_idx = dest_tile.0.to_index(map.width);
-    if let Some(_) = map.beings[dest_idx] { // if someone is already in that spot then you cant move there
-        return false;
+    if let Some(target) = map.beings[dest_idx] {
+        return MoveResult::Attack(target);
     }
+
     if let Some(mut tile) = map.tiles.get_mut(dest_idx) {
         view.dirty = true; // make it dirty so the vision is updated definitely
         if !tile.is_blocking {
             let idx = pos.0.to_index(map.width);
             *pos = dest_tile.clone();
             map.beings[idx] = None;
-            map.beings[dest_idx] = who;
-            return true;
+            map.beings[dest_idx] = Some(who);
+            return MoveResult::Acted("".to_string());
         } else {
             match tile.destructible {
                 Destructible::ByHand {
@@ -60,15 +72,16 @@ pub fn try_move(map: &mut Map, dest_tile: &Position, pos: &mut Position, view: &
                     if health == 0 {
                         map.tiles[dest_idx] = named_tile("Grass Floor");
                     }
+                    return MoveResult::Acted("".to_string());
                 }
-                Destructible::Unbreakable => {}
+                Destructible::Unbreakable => ("That tile is unbreakable.", false),
                 Destructible::_ByPick { .. } => {
                     unimplemented!("Pickaxe not ready for use")
                 }
             };
         }
     }
-    false
+    MoveResult::InvalidMove("No tile".to_string())
 }
 
 /// Renders all entities that have a Position and Sprite component
@@ -82,9 +95,14 @@ pub fn render_entities(ctx: &mut BTerm, state: &State) {
     }
 }
 
+pub struct DeathMark;
+
 /// Tag Component that marks the player entity
 #[derive(Deserialize, Debug)]
 pub struct Player;
+
+#[derive(Deserialize, Debug)]
+pub struct Name(pub String);
 
 #[derive(Clone, Debug)]
 pub struct Position(pub Point);

@@ -13,7 +13,9 @@ pub struct Living {
     pub sprite: Option<RawSprite>,
     pub view_range: Option<u32>,
     pub breed: Option<String>,
+    pub ai: Option<String>,
     pub player: Option<String>,
+    pub combatstats: Option<CombatStats>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -21,4 +23,11 @@ pub struct RawSprite {
     pub glyph: char,
     pub fg: String,
     pub bg: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct CombatStats {
+    pub hp: u32,
+    pub str: i32,
+    pub def: i32,
 }

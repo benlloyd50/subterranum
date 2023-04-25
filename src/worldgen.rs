@@ -9,7 +9,7 @@ use bracket_noise::prelude::*;
 use bracket_pathfinding::prelude::Point;
 use bracket_random::prelude::*;
 use bracket_terminal::prelude::to_cp437;
-use hecs::With;
+use hecs::{With, World};
 use rand::seq::SliceRandom;
 use std::collections::VecDeque;
 
@@ -68,14 +68,18 @@ pub fn generate_map(seed: u64, depth: usize) -> (Map, Position) {
 
 /// Moves to another floor and cleans up old floor
 pub fn move_to_new_floor(state: &mut State, new_depth: usize) {
+    // clean up old monsters
+    despawn_beings(&mut state.world, &mut state.map);
+
     // Update map that player was previously on
     state.generated_maps.insert(state.map.depth, state.map.clone());
 
     let (new_map, new_player_pos) = match state.generated_maps.get(&new_depth) {
         None => generate_map(state.config.world_seed, new_depth),
-        Some(map) => find_position_on_stairs(state.map.depth, new_depth, map),
+        Some(map) => (map.clone(), find_position_of_stairs(state.map.depth, new_depth, map)),
     };
     state.map = new_map;
+
     if let Some((_, player_pos)) = state
         .world
         .query_mut::<With<&mut Position, &Player>>()
@@ -84,22 +88,22 @@ pub fn move_to_new_floor(state: &mut State, new_depth: usize) {
     {
         *player_pos = new_player_pos;
     }
-    // clean up old monsters
-    despawn_monsters(state);
 
     // furnish the new ones, no not with alcohol. this means monsters respawn so stair spamming has consequences
     furnish_map(&mut state.world, &mut state.map);
 }
 
 /// Helper for despawning all entities with a Breed and Position component
-fn despawn_monsters(state: &mut State) {
+fn despawn_beings(world: &mut World, map: &mut Map) {
     let mut entities_to_despawn = Vec::new();
-    for (entity, (_breed, pos)) in state.world.query::<(&Breed, &Position)>().iter() {
+    for (entity, (_breed, pos)) in world.query::<(&Breed, &Position)>().iter() {
         entities_to_despawn.push(entity);
-        state.map.tiles[pos.0.to_index(state.map.width)].is_blocking = false;
+        let idx = pos.0.to_index(map.width);
+        map.tiles[idx].is_blocking = false;
+        map.beings[idx] = None;
     }
     for entity in entities_to_despawn {
-        match state.world.despawn(entity) {
+        match world.despawn(entity) {
             Ok(..) => (),
             Err(..) => println!("Did not despawn properly"),
         }
@@ -107,13 +111,12 @@ fn despawn_monsters(state: &mut State) {
 }
 
 /// Helper for moving between floors and getting the player's new position
-fn find_position_on_stairs(old_depth: usize, new_depth: usize, map: &Map) -> (Map, Position) {
-    let new_pos = if old_depth < new_depth {
+fn find_position_of_stairs(old_depth: usize, new_depth: usize, map: &Map) -> Position {
+    if old_depth < new_depth {
         find_tile_from_type(map, old_depth, &TileType::UpStairs)
     } else {
         find_tile_from_type(map, old_depth, &TileType::DownStairs)
-    };
-    (map.clone(), new_pos)
+    }
 }
 
 /// displays each room's floor as a single hex digit 1-f, skips any rooms past the 16th for now

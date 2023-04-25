@@ -11,7 +11,8 @@ mod tile_structs;
 use tile_structs::TileData;
 
 use crate::{
-    actor::{CharSprite, Player, Position},
+    actor::{CharSprite, Name, Player, Position},
+    combat::CombatStats,
     fov::ViewShed,
     item::Item,
     map::{Destructible, TileType, WorldTile},
@@ -142,7 +143,11 @@ pub fn named_living_builder(edb: &EntityDatabase, name: &str, pos: Position) -> 
     }
 
     if let Some(breed) = &monster_info.breed {
-        eb.add(Breed::from(name, breed));
+        if let Some(ai) = &monster_info.ai {
+            eb.add(Breed::from(name, breed, ai));
+        } else {
+            eb.add(Breed::from(name, breed, "basic"));
+        }
     }
 
     if let Some(view_distance) = &monster_info.view_range {
@@ -151,6 +156,14 @@ pub fn named_living_builder(edb: &EntityDatabase, name: &str, pos: Position) -> 
 
     if let Some(_) = &monster_info.player {
         eb.add(Player);
+    }
+
+    if let Some(stats) = &monster_info.combatstats {
+        eb.add(CombatStats::new(stats.hp, stats.str, stats.def));
+    }
+
+    if name == "Player" {
+        eb.add(Name(name.to_string()));
     }
 
     Some(eb)

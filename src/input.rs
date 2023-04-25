@@ -1,8 +1,10 @@
 use crate::{
-    actor::{try_ascend, try_descend, try_move, Player, Position},
+    actor::{try_ascend, try_descend, try_move, MoveResult, Name, Player, Position},
+    combat::{attack, CombatStats},
     fov::ViewShed,
+    monster::Breed,
     state::PlayerResponse,
-    RunState, State,
+    Message, RunState, State,
 };
 use std::{cmp::max, process::exit};
 
@@ -12,11 +14,12 @@ use hecs::With;
 /// Handles the player input based on the key pressed
 /// Returns the type of response needed based on what the player did
 pub fn player_input(state: &mut State, ctx: &mut BTerm) -> PlayerResponse {
-    let mut should_respond = false;
-    for (e, (pos, view)) in state
+    let turn_sent = state.turn_counter;
+    if let Some((e, ((pos, attacker_stats, name), view))) = &mut state
         .world
-        .query::<(With<&mut Position, &Player>, &mut ViewShed)>()
+        .query::<(With<(&mut Position, &CombatStats, &Name), &Player>, &mut ViewShed)>()
         .iter()
+        .next()
     {
         // dest_tile represents the position of something the player will interact with
         let mut dest_pos = pos.clone();
@@ -26,64 +29,76 @@ pub fn player_input(state: &mut State, ctx: &mut BTerm) -> PlayerResponse {
             match key {
                 VirtualKeyCode::Up | VirtualKeyCode::K => {
                     dest_pos.0.y = max(dest_pos.y() - 1, 0);
-                    should_respond = try_move(&mut state.map, &dest_pos, pos, view, Some(e));
                 }
                 VirtualKeyCode::Down | VirtualKeyCode::J => {
                     dest_pos.0.y += 1;
-                    should_respond = try_move(&mut state.map, &dest_pos, pos, view, Some(e));
                 }
                 VirtualKeyCode::Left | VirtualKeyCode::H => {
                     dest_pos.0.x = max(dest_pos.x() - 1, 0);
-                    should_respond = try_move(&mut state.map, &dest_pos, pos, view, Some(e));
                 }
                 VirtualKeyCode::Right | VirtualKeyCode::L => {
                     dest_pos.0.x += 1;
-                    should_respond = try_move(&mut state.map, &dest_pos, pos, view, Some(e));
                 }
                 VirtualKeyCode::Y => {
                     dest_pos.0.x = max(dest_pos.x() - 1, 0);
                     dest_pos.0.y = max(dest_pos.y() - 1, 0);
-                    should_respond = try_move(&mut state.map, &dest_pos, pos, view, Some(e));
                 }
                 VirtualKeyCode::U => {
                     dest_pos.0.x += 1;
                     dest_pos.0.y = max(dest_pos.y() - 1, 0);
-                    should_respond = try_move(&mut state.map, &dest_pos, pos, view, Some(e));
                 }
                 VirtualKeyCode::N => {
                     dest_pos.0.x = max(dest_pos.x() - 1, 0);
                     dest_pos.0.y += 1;
-                    should_respond = try_move(&mut state.map, &dest_pos, pos, view, Some(e));
                 }
                 VirtualKeyCode::M => {
                     dest_pos.0.x += 1;
                     dest_pos.0.y += 1;
-                    should_respond = try_move(&mut state.map, &dest_pos, pos, view, Some(e));
                 }
+                _ => {}
+            }
+            if !pos.0.eq(&dest_pos.0) {
+                // if the dest_pos is not the same one they were standing on
+                return match try_move(&mut state.map, &dest_pos, pos, view, *e) {
+                    MoveResult::Acted(_) => PlayerResponse::TurnAdvance,
+                    MoveResult::InvalidMove(reason) => {
+                        state.message_log.push(Message::new(reason, turn_sent));
+                        PlayerResponse::Waiting
+                    }
+                    MoveResult::Attack(target) => {
+                        if let Ok(mut defender) = state.world.query_one::<(&mut CombatStats, &Breed)>(target) {
+                            if let Some(defender) = defender.get() {
+                                let damage_stmt = attack(defender, (attacker_stats, name));
+                                state.message_log.push(Message::new(damage_stmt, turn_sent));
+                            }
+                        } // Prevents stale enemies from being double despawned
+                        PlayerResponse::TurnAdvance
+                    }
+                };
+            }
+            return match key {
                 VirtualKeyCode::Comma => {
                     let depth = state.map.depth - 1;
                     if try_ascend(&state.map, pos, state.map.depth, 1) {
                         return PlayerResponse::StateChange(RunState::NextLevel(depth));
                     }
+                    PlayerResponse::Waiting
                 }
                 VirtualKeyCode::Period => {
                     let depth = state.map.depth + 1;
                     if try_descend(&state.map, pos) {
                         return PlayerResponse::StateChange(RunState::NextLevel(depth));
                     }
+                    PlayerResponse::Waiting
                 }
                 VirtualKeyCode::Space => {
                     // A waiting action
-                    should_respond = true;
+                    PlayerResponse::TurnAdvance
                 }
                 VirtualKeyCode::Escape => exit(0),
-                _ => {}
-            }
+                _ => PlayerResponse::Waiting,
+            };
         }
     }
-    if should_respond {
-        PlayerResponse::TurnAdvance
-    } else {
-        PlayerResponse::Waiting
-    }
+    PlayerResponse::Waiting
 }

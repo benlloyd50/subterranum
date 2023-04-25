@@ -1,4 +1,5 @@
 use bracket_terminal::prelude::*;
+use combat::CombatStats;
 use hecs::*;
 use rand::{seq::SliceRandom, Rng};
 use std::{collections::HashMap, fs};
@@ -18,6 +19,7 @@ mod actor;
 mod fov;
 mod item;
 use actor::{CharSprite, Player, Position};
+mod combat;
 mod config;
 mod input;
 mod map_scanning;
@@ -73,8 +75,8 @@ fn main() -> BError {
             runstate: RunState::InGame,
             config,
             message_log: vec![
-                Message::new("Welcome to Terra Incognita".to_string()),
-                Message::new("This is an alpha build from March 2023".to_string()),
+                Message::new("Welcome to Terra Incognita".to_string(), 0),
+                Message::new("This is an alpha build from March 2023".to_string(), 0),
             ],
             turn_counter: 0,
             generated_maps: HashMap::new(),
@@ -86,8 +88,8 @@ fn main() -> BError {
             runstate: RunState::MainMenu(MenuIndex(0)),
             config,
             message_log: vec![
-                Message::new("Welcome to Terra Incognita".to_string()),
-                Message::new("This is an alpha build from March 2023".to_string()),
+                Message::new("Welcome to Terra Incognita".to_string(), 0),
+                Message::new("This is an alpha build from March 2023".to_string(), 0),
             ],
             turn_counter: 0,
             generated_maps: HashMap::new(),
@@ -102,7 +104,13 @@ pub fn start_new_game(world: &mut World, seed: u64) -> Map {
     let (mut map, player_start) = generate_map(seed, 0);
     let player_builder = named_living_builder(&ENTITY_DB.lock().unwrap(), "Player", player_start);
     if let Some(mut pb) = player_builder {
-        world.spawn(pb.build());
+        let p_entity = world.spawn(pb.build());
+        match world.insert(p_entity, (CombatStats::new(200, 10, 20),)) {
+            Ok(..) => {}
+            Err(e) => {
+                println!("{}", e);
+            }
+        }
     }
     furnish_map(world, &mut map);
     map
@@ -127,7 +135,8 @@ fn add_beings_to_rooms(world: &mut World, map: &mut Map) {
             let being_name = beings.choose(&mut rand::thread_rng()).unwrap();
             let e_builder = named_living_builder(&ENTITY_DB.lock().unwrap(), being_name, Position(being_pos));
             if let Some(mut eb) = e_builder {
-                world.spawn(eb.build());
+                let e = world.spawn(eb.build());
+                map.beings[being_pos.to_index(map.width)] = Some(e);
             }
         }
     }
