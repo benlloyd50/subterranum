@@ -2,7 +2,7 @@
    This file defines the components and systems commonly used by them.
 */
 use bracket_terminal::prelude::*;
-use hecs::{Entity};
+use hecs::Entity;
 use serde::Deserialize;
 
 use crate::{

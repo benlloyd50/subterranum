@@ -54,7 +54,7 @@ impl State {
     }
 
     /// Systems that are ran at the end after the response systems run
-    fn run_post_response_systems(&mut self) {
+    fn run_pre_response_systems(&mut self) {
         destroy_dead_beings(&mut self.world, &mut self.map);
     }
 
@@ -76,8 +76,8 @@ impl GameState for State {
                     PlayerResponse::StateChange(new_state) => newstate = new_state,
                     PlayerResponse::TurnAdvance => {
                         self.turn_counter += 1;
+                        self.run_pre_response_systems();
                         self.run_response_systems();
-                        self.run_post_response_systems();
                     }
                     _ => {}
                 }
