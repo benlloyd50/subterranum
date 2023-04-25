@@ -1,7 +1,7 @@
 use crate::actor::{Player, Position};
 use crate::data_read::named_tile;
 use crate::map::{Map, TileType, WorldTile, MAP_HEIGHT, MAP_WIDTH};
-use crate::map_scanning::{find_tile_from_type, wall_glyph};
+use crate::map_scanning::{find_tile_from_type, pretty_walls};
 use crate::monster::Breed;
 use crate::prefab::{load_rex_room, xy_to_idx};
 use crate::{furnish_map, State};
@@ -66,17 +66,6 @@ pub fn generate_map(seed: u64, depth: usize) -> (Map, Position) {
     pretty_walls(&mut map);
 
     (map, player_spawn)
-}
-
-fn pretty_walls(map: &mut Map) {
-    for idx in 0..map.tiles.len() {
-        let mut tile = map.tiles[idx];
-        if tile.tile_type == TileType::Wall {
-            let Position(Point { x, y }) = map.idx_to_pos(idx);
-            tile.sprite.glyph = wall_glyph(map, x as usize, y as usize);
-        }
-        map.tiles[idx] = tile;
-    }
 }
 
 /// Moves to another floor and cleans up old floor

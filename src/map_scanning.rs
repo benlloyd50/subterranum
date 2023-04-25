@@ -1,17 +1,32 @@
 use crate::{actor::Position, map::TileType, Map};
+use bracket_pathfinding::prelude::Point;
 use bracket_terminal::FontCharType;
 use rand::Rng;
 
+/// Finds the position of a type of a tile, whichever one appears first
 pub fn find_tile_from_type(map: &Map, _connecting_depth: usize, tile_type: &TileType) -> Position {
     match map.tiles.iter().position(|tile| tile.tile_type == *tile_type) {
         None => Position::new(0, 0),
-        Some(upstairs_idx) => map.idx_to_pos(upstairs_idx),
+        Some(idx) => map.idx_to_pos(idx),
+    }
+}
+
+/// Turns wall sprite into a connected pattern
+pub fn pretty_walls(map: &mut Map) {
+    for idx in 0..map.tiles.len() {
+        let mut tile = map.tiles[idx];
+        if tile.tile_type == TileType::Wall {
+            let Position(Point { x, y }) = map.idx_to_pos(idx);
+            // x or y could never be negative so i feel confident casting
+            tile.sprite.glyph = wall_glyph(map, x as usize, y as usize);
+        }
+        map.tiles[idx] = tile;
     }
 }
 
 // const INNER_BORDER_TILE: u16 = 32;
 static VARIETY_TILE: [u16; 4] = [96, 32, 35, 39];
-pub fn wall_glyph(map: &Map, x: usize, y: usize) -> FontCharType {
+fn wall_glyph(map: &Map, x: usize, y: usize) -> FontCharType {
     let mut mask: u8 = 0;
 
     if y != 0 && is_revealed_and_wall(map, x, y - 1) {
