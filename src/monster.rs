@@ -6,20 +6,32 @@ use hecs::{Entity, With};
 
 use crate::{
     actor::{try_move, MoveResult, Player, Position},
+    combat::{attack, CombatStats},
     fov::ViewShed,
     map::Map,
     Message, State,
 };
 
 pub fn handle_monster_turns(state: &mut State) {
-    if let Some((_, player_pos)) = &mut state.world.query::<With<&Position, &Player>>().iter().next() {
-        for (e, (pos, view, breed)) in state.world.query::<(&mut Position, &mut ViewShed, &mut Breed)>().iter() {
-            //TODO: how can i encapsulate this behavior and vary it for different monsters/entities
+    if let Some((_, (player_pos, player_stats))) = state
+        .world
+        .query::<With<(&Position, &mut CombatStats), &Player>>()
+        .iter()
+        .next()
+    {
+        for (e, (pos, view, breed, being_stats)) in state
+            .world
+            .query::<(&mut Position, &mut ViewShed, &mut Breed, &CombatStats)>()
+            .iter()
+        {
             let move_state = (
+                // When move_state is changed the values that were mutable are also changed
                 e,
                 pos,
+                *being_stats,
                 view,
                 player_pos.clone(),
+                &mut *player_stats,
                 &mut state.map,
                 state.turn_counter,
                 &mut state.message_log,
@@ -60,8 +72,10 @@ impl Breed {
         move_state: (
             Entity,
             &mut Position,
+            CombatStats,
             &mut ViewShed,
             Position,
+            &mut CombatStats,
             &mut Map,
             usize,
             &mut Vec<Message>,
@@ -75,11 +89,13 @@ impl Breed {
 
 fn simple_ai(
     breed: &Breed,
-    (me, pos, view, player_pos, map, turn_counter, message_log): (
+    (me, pos, attacker_stats, view, player_pos, player_stats, map, turn_counter, message_log): (
         Entity,
         &mut Position,
+        CombatStats,
         &mut ViewShed,
         Position,
+        &mut CombatStats,
         &mut Map,
         usize,
         &mut Vec<Message>,
@@ -87,7 +103,8 @@ fn simple_ai(
 ) {
     let dist_to_player = DistanceAlg::Pythagoras.distance2d(player_pos.0, pos.0);
     if dist_to_player < 1.5 {
-        message_log.push(Message::new(format!("{}: Poke", breed.name), turn_counter));
+        let damage_stmt = attack((player_stats, "Player"), (&attacker_stats, breed.name.clone()));
+        message_log.push(Message::new(damage_stmt, turn_counter));
         return;
     }
     let tile_idx = pos.0.to_index(map.width);

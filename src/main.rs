@@ -1,5 +1,4 @@
 use bracket_terminal::prelude::*;
-use combat::CombatStats;
 use hecs::*;
 use rand::{seq::SliceRandom, Rng};
 use std::{collections::HashMap, fs};
@@ -20,6 +19,7 @@ mod fov;
 mod item;
 use actor::{CharSprite, Player, Position};
 mod combat;
+use combat::CombatStats;
 mod config;
 mod input;
 mod map_scanning;
@@ -102,6 +102,16 @@ fn main() -> BError {
 /// Creates a new map and setups world for the start of a fresh run
 pub fn start_new_game(world: &mut World, seed: u64) -> Map {
     let (mut map, player_start) = generate_map(seed, 0);
+    add_player_to_room(world, player_start);
+    furnish_map(world, &mut map);
+    map
+}
+
+fn furnish_map(world: &mut World, map: &mut Map) {
+    add_beings_to_rooms(world, map);
+}
+
+fn add_player_to_room(world: &mut World, player_start: Position) {
     let player_builder = named_living_builder(&ENTITY_DB.lock().unwrap(), "Player", player_start);
     if let Some(mut pb) = player_builder {
         let p_entity = world.spawn(pb.build());
@@ -112,12 +122,6 @@ pub fn start_new_game(world: &mut World, seed: u64) -> Map {
             }
         }
     }
-    furnish_map(world, &mut map);
-    map
-}
-
-fn furnish_map(world: &mut World, map: &mut Map) {
-    add_beings_to_rooms(world, map);
 }
 
 fn add_beings_to_rooms(world: &mut World, map: &mut Map) {

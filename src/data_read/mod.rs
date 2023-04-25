@@ -14,9 +14,10 @@ mod perlin_structs;
 use crate::{
     actor::{CharSprite, Name, Player, Position},
     combat::CombatStats,
+    fov::ViewShed,
     item::Item,
     map::{Destructible, TileType, WorldTile},
-    monster::Breed, fov::ViewShed,
+    monster::Breed,
 };
 
 lazy_static! {

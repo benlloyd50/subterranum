@@ -1,4 +1,3 @@
-
 // pub struct PerlinSettings {
 //     pub noisetype: String,
 //     pub fractaltype: String,
