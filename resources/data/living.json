@@ -21,7 +21,7 @@
             "breed": "Centipede",
             "combatstats": {
                 "hp": 2,
-                "str": 1,
+                "str": 2,
                 "def": 0
             }
         },

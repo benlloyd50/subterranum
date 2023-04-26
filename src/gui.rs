@@ -48,34 +48,37 @@ fn draw_right_box(ctx: &mut BTerm, state: &State, screenheight: usize) {
         );
     }
 
-    if state.config.dev_mode {
-        ctx.print(right_map_edge_x, 11, "02:");
-        ctx.draw_bar_horizontal(
-            right_map_edge_x + 3,
-            11,
-            15,
-            1,
-            1,
-            RGBA::named(LIGHTBLUE),
-            RGBA::named(BLACK),
-        );
-    }
-
     ctx.print(right_map_edge_x, 7, format!("Depth: {}", state.map.depth));
 }
 
+/// A fully customizable bar that splits between two characters with custom colors
+type ColoredChar = (char, RGBA, RGBA);
+fn draw_horizontal_split_bar(ctx: &mut BTerm, n: u32, max: u32, sx: i32, sy: i32, width: usize, filled: ColoredChar, empty: ColoredChar) {
+    let percent = n as f32 / max as f32;
+    let fill_width = (percent * width as f32) as usize;
+    for x in 0..width as i32 {
+        if x <= fill_width as i32 {
+            ctx.set(sx + x, sy, filled.1, empty.2, to_cp437(filled.0));
+        } else {
+            ctx.set(sx + x, sy, empty.1, empty.2, to_cp437(empty.0));
+        }
+    }
+}
+
+/// Creates a health bar with a name
 fn draw_hp_bar(ctx: &mut BTerm, name: impl ToString, hp: u32, max_hp: u32, starting_pos: Point) {
     ctx.print(starting_pos.x, starting_pos.y, format!("►{}", name.to_string()));
 
     ctx.print(starting_pos.x, starting_pos.y + 1, "HP:");
-    ctx.draw_bar_horizontal(
+    draw_horizontal_split_bar(
+        ctx,
+        hp,
+        max_hp,
         starting_pos.x + 3,
         starting_pos.y + 1,
         15,
-        hp,
-        max_hp,
-        RGBA::named(LIME_GREEN),
-        RGBA::named(DARK_RED),
+        ('♥', RGBA::named(LIME_GREEN), RGBA::named(BLACK)),
+        ('♥', RGBA::named(DARKRED), RGBA::named(BLACK)),
     );
 }
 

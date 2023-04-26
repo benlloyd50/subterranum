@@ -1,4 +1,5 @@
 use hecs::{Entity, World};
+use std::cmp::max;
 
 use crate::{actor::Position, map::Map};
 
@@ -27,11 +28,7 @@ pub fn attack(
     (defender, d_name): (&mut CombatStats, impl ToString),
     (attacker, a_name): (&CombatStats, impl ToString),
 ) -> String {
-    let damage_given = if attacker.strength < defender.defense {
-        0
-    } else {
-        (attacker.strength - defender.defense).abs()
-    };
+    let damage_given = max(0, (attacker.strength - defender.defense).abs());
     let new_hp = defender.health.saturating_sub(damage_given as u32);
     defender.health = new_hp;
     format!(

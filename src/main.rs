@@ -115,7 +115,7 @@ fn add_player_to_room(world: &mut World, player_start: Position) {
     let player_builder = named_living_builder(&ENTITY_DB.lock().unwrap(), "Player", player_start);
     if let Some(mut pb) = player_builder {
         let p_entity = world.spawn(pb.build());
-        match world.insert(p_entity, (CombatStats::new(200, 10, 20),)) {
+        match world.insert(p_entity, (CombatStats::new(200, 10, 1),)) {
             Ok(..) => {}
             Err(e) => {
                 println!("{}", e);
@@ -125,13 +125,13 @@ fn add_player_to_room(world: &mut World, player_start: Position) {
 }
 
 fn add_beings_to_rooms(world: &mut World, map: &mut Map) {
-    let monster_spawns_per_room = 5;
 
     let beings = vec!["Centipede", "Mole", "Star Nosed Mole"];
     for room in map.rooms.iter() {
+        let monster_spawns_per_room = room.tiles.len() / 15;
         for _ in 0..monster_spawns_per_room {
             let chance: f32 = rand::thread_rng().gen();
-            if chance > 0.8 {
+            if chance > 0.6 {
                 continue;
             }
 
