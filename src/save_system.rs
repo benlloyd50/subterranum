@@ -1,7 +1,7 @@
 use std::fs;
 use serde::{Deserialize, Serialize};
 
-use crate::{state::State, map::Map, config::Config, actor::Position, add_player_to_room, furnish_map};
+use crate::{state::State, map::Map, config::Config, actor::{Position, Player}, add_player_to_room, furnish_map};
 
 #[derive(Deserialize, Serialize)]
 struct GameData {
@@ -50,6 +50,10 @@ fn generate(state: &mut State) -> GameData {
         data.maps.push(map.clone());
     }
 
+    if let Some((_, (_, pos))) = state.world.query::<(&Player, &Position)>().iter().next() {
+        data.last_pos = pos.clone();
+    }
+
     data
 }
 
@@ -73,7 +77,7 @@ pub fn start_load_game(config: Config) -> State {
         None => panic!("Map could not be found for the last recorded depth"),
     };
     
-    generate_content(&mut load_state, Position::new(3, 3));
+    generate_content(&mut load_state, load_data.last_pos);
     
     load_state
 }

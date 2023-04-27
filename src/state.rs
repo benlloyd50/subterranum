@@ -107,7 +107,10 @@ impl GameState for State {
                 self.run_continuous_systems(ctx);
 
                 match player_input(self, ctx) {
-                    PlayerResponse::StateChange(new_state) => newstate = new_state,
+                    PlayerResponse::StateChange(new_state) => {
+                        ctx.cls();
+                        newstate = new_state;
+                    }
                     PlayerResponse::TurnAdvance => {
                         self.turn_counter += 1;
                         self.run_pre_response_systems();
@@ -124,7 +127,6 @@ impl GameState for State {
                 newstate = RunState::InGame;
             }
             RunState::SaveGame => {
-                println!("Saving the game");
                 save_game(self);
                 newstate = RunState::MainMenu(MenuIndex(0));
             }
