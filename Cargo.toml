@@ -10,6 +10,8 @@ bracket-terminal = "0.8.2"
 bracket-noise = "0.8.7"
 bracket-pathfinding = "0.8.7"
 bracket-random = "0.8.2"
+bracket-color = {version="0.8.7", features = ["serde"]}
+bracket-geometry = {version="0.8.7", features = ["serde"]}
 rand = "0.8.5"
 toml = "0.7.2"
 serde = { version = "1.0", features = ["derive"] }

@@ -48,7 +48,7 @@ pub fn load_rex_room(rex_file: impl ToString) -> Prefab {
                         sprite: CharSprite::with_color('P', BLACK, None),
                         is_blocking: true,
                         is_transparent: false,
-                        destructible: crate::map::Destructible::Unbreakable,
+                        // destructible: crate::map::Destructible::Unbreakable,
                         tile_type: TileType::Special,
                     },
                     _ => {
@@ -57,7 +57,7 @@ pub fn load_rex_room(rex_file: impl ToString) -> Prefab {
                             sprite: CharSprite::with_color('E', BLACK, None),
                             is_blocking: true,
                             is_transparent: false,
-                            destructible: crate::map::Destructible::Unbreakable,
+                            // destructible: crate::map::Destructible::Unbreakable,
                             tile_type: TileType::Special,
                         }
                     }

@@ -11,9 +11,10 @@ use bracket_random::prelude::*;
 use bracket_terminal::prelude::to_cp437;
 use hecs::{With, World};
 use rand::seq::SliceRandom;
+use serde::{Serialize, Deserialize};
 use std::collections::VecDeque;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorldRoom {
     pub tiles: Vec<Point>,
 }

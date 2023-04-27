@@ -1,8 +1,8 @@
-use std::cmp;
+use std::{cmp, fs};
 
 use bracket_terminal::prelude::*;
 
-use crate::{start_new_game, Config, RunState, State};
+use crate::{start_new_game, Config, RunState, State, save_system::start_load_game};
 
 const MAINMENU_OPTIONS: [&str; 3] = ["New World", "Load Game", "Options"];
 
@@ -23,7 +23,13 @@ pub fn run_menu_systems(state: &mut State, ctx: &mut BTerm, menu_index: usize) -
                     state.map = start_new_game(&mut state.world, state.config.world_seed);
                     return RunState::InGame;
                 } else if menu_index == 1 {
-                    error_message = Some("No saved games found.".to_string());
+                    match fs::File::open("./saves/player.sav") {
+                        Ok(..) => {
+                            *state = start_load_game(state.config.clone());
+                            return RunState::InGame;
+                        }
+                        Err(..) => { error_message = Some("No saved games found.".to_string()); }
+                    }
                 } else if menu_index == 2 {
                     error_message = Some("No options menu yet.".to_string());
                 }

@@ -3,12 +3,11 @@
 */
 use bracket_terminal::prelude::*;
 use hecs::Entity;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{
-    data_read::named_tile,
     fov::ViewShed,
-    map::{Destructible, Map, TileType},
+    map::{Map, TileType},
     BTerm, State,
 };
 
@@ -51,33 +50,17 @@ pub fn try_move(
         return MoveResult::Attack(target);
     }
 
-    if let Some(mut tile) = map.tiles.get_mut(dest_idx) {
+    if let Some(_) = map.tiles.get_mut(dest_idx) {
         view.dirty = true; // make it dirty so the vision is updated definitely
-        if !tile.is_blocking {
+        // if !tile.is_blocking {
             let idx = pos.0.to_index(map.width);
             *pos = dest_tile.clone();
             map.beings[idx] = None;
             map.beings[dest_idx] = Some(who);
             return MoveResult::Acted("".to_string());
-        } else {
-            match tile.destructible {
-                Destructible::ByHand {
-                    mut health,
-                    dropped_item,
-                } => {
-                    health -= 1;
-                    tile.destructible = Destructible::ByHand { health, dropped_item };
-                    if health == 0 {
-                        map.tiles[dest_idx] = named_tile("Grass Floor");
-                    }
-                    return MoveResult::Acted("".to_string());
-                }
-                Destructible::Unbreakable => ("That tile is unbreakable.", false),
-                Destructible::_ByPick { .. } => {
-                    unimplemented!("Pickaxe not ready for use")
-                }
-            };
-        }
+        // } 
+        // return MoveResult::InvalidMove("Tile is blocked".to_string());
+        
     }
     MoveResult::InvalidMove("No tile".to_string())
 }
@@ -100,7 +83,7 @@ pub struct Player;
 #[derive(Deserialize, Debug)]
 pub struct Name(pub String);
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Position(pub Point);
 
 impl Position {
@@ -118,7 +101,7 @@ impl Position {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct CharSprite {
     pub glyph: FontCharType,
     pub fg: RGB,

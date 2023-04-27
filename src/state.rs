@@ -14,13 +14,12 @@ use crate::{
     menu::{run_menu_systems, MenuIndex},
     messagelog::Message,
     monster::handle_monster_turns,
-    worldgen::move_to_new_floor,
+    worldgen::move_to_new_floor, save_system::save_game, start_new_game,
 };
 
 pub struct State {
     pub world: World, // Holds all of our entities
     pub map: Map,     // Holds the tiles to the world
-    // player_e: Entity // The player's entity for convienent lookup
     pub runstate: RunState,
     pub message_log: Vec<Message>,
     pub config: Config,
@@ -33,6 +32,7 @@ pub enum RunState {
     InGame,
     MainMenu(MenuIndex),
     NextLevel(usize),
+    SaveGame,
 }
 
 pub enum PlayerResponse {
@@ -42,6 +42,40 @@ pub enum PlayerResponse {
 }
 
 impl State {
+    /// Empty start of state that starts in the menu
+    pub fn new(config: Config) -> Self {
+        Self {
+            world: World::new(),
+            map: Map::empty(),
+            runstate: RunState::MainMenu(MenuIndex(0)),
+            config,
+            message_log: vec![
+                Message::new("Welcome to Terra Incognita".to_string(), 0),
+                Message::new("This is an alpha build from April 2023".to_string(), 0),
+            ],
+            turn_counter: 0,
+            generated_maps: HashMap::new(),
+        }
+    }
+
+    /// For dev purposes, we can skip the main menu
+    pub fn dev(config: Config) -> Self {
+        let mut world = World::new();
+        let map = start_new_game(&mut world, config.world_seed);
+        State {
+            world,
+            map,
+            runstate: RunState::InGame,
+            config,
+            message_log: vec![
+                Message::new("Welcome to Terra Incognita".to_string(), 0),
+                Message::new("This is a dev build from April 2023".to_string(), 0),
+            ],
+            turn_counter: 0,
+            generated_maps: HashMap::new(),
+        }
+    }
+
     /// Systems that are ran every frame, regardless of turn progression
     fn run_continuous_systems(&mut self, ctx: &mut BTerm) {
         ctx.cls();
@@ -88,6 +122,11 @@ impl GameState for State {
             RunState::NextLevel(new_depth) => {
                 move_to_new_floor(self, new_depth);
                 newstate = RunState::InGame;
+            }
+            RunState::SaveGame => {
+                println!("Saving the game");
+                save_game(self);
+                newstate = RunState::MainMenu(MenuIndex(0));
             }
         }
 

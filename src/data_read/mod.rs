@@ -15,8 +15,7 @@ use crate::{
     actor::{CharSprite, Name, Player, Position},
     combat::CombatStats,
     fov::ViewShed,
-    item::Item,
-    map::{Destructible, TileType, WorldTile},
+    map::{TileType, WorldTile},
     monster::Breed,
 };
 
@@ -101,19 +100,19 @@ pub fn named_tile(name: &str) -> WorldTile {
     if let Some(is_transparent) = tile_info.is_transparent {
         builder.is_transparent = is_transparent;
     }
-    if let Some(d_info) = &tile_info.destructible_info {
-        builder.destructible = match d_info.by_what.as_str() {
-            "hand" => Destructible::ByHand {
-                health: d_info.hits,
-                dropped_item: Item {},
-            },
-            "pickaxe" => Destructible::_ByPick {
-                health: d_info.hits,
-                dropped_item: Item {},
-            },
-            _ => Destructible::Unbreakable,
-        };
-    }
+    // if let Some(d_info) = &tile_info.destructible_info {
+    //     builder.destructible = match d_info.by_what.as_str() {
+    //         "hand" => Destructible::ByHand {
+    //             health: d_info.hits,
+    //             dropped_item: Item {},
+    //         },
+    //         "pickaxe" => Destructible::_ByPick {
+    //             health: d_info.hits,
+    //             dropped_item: Item {},
+    //         },
+    //         _ => Destructible::Unbreakable,
+    //     };
+    // }
     if let Some(sprite) = &tile_info.sprite {
         let fg = RGB::from_hex(&sprite.fg).unwrap_or(RGB::named(PURPLE));
         let bg = RGB::from_hex(&sprite.bg).unwrap_or(RGB::named(WHITESMOKE));

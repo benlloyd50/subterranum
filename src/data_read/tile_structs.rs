@@ -13,12 +13,12 @@ pub struct Tile {
     pub is_transparent: Option<bool>,
     pub is_blocking: Option<bool>,
     pub sprite: Option<RawSprite>,
-    pub destructible_info: Option<DestructibleInfo>,
+    // pub destructible_info: Option<DestructibleInfo>,
     pub tile_type: Option<String>,
 }
 
-#[derive(Deserialize, Debug)]
-pub struct DestructibleInfo {
-    pub by_what: String,
-    pub hits: usize,
-}
+// #[derive(Deserialize, Debug)]
+// pub struct DestructibleInfo {
+//     pub by_what: String,
+//     pub hits: usize,
+// }

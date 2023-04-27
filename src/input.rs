@@ -6,7 +6,7 @@ use crate::{
     state::PlayerResponse,
     Message, RunState, State,
 };
-use std::{cmp::max, process::exit};
+use std::cmp::max;
 
 use bracket_terminal::prelude::{BTerm, VirtualKeyCode};
 use hecs::With;
@@ -96,7 +96,7 @@ pub fn player_input(state: &mut State, ctx: &mut BTerm) -> PlayerResponse {
                     // A waiting action
                     PlayerResponse::TurnAdvance
                 }
-                VirtualKeyCode::Escape => exit(0),
+                VirtualKeyCode::Escape => PlayerResponse::StateChange(RunState::SaveGame),
                 _ => PlayerResponse::Waiting,
             };
         }

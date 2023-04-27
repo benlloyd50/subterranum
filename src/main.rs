@@ -1,7 +1,7 @@
 use bracket_terminal::prelude::*;
 use hecs::*;
 use rand::{seq::SliceRandom, Rng};
-use std::{collections::HashMap, fs};
+use std::fs;
 
 mod data_read;
 use data_read::{named_living_builder, ENTITY_DB};
@@ -24,11 +24,11 @@ mod config;
 mod input;
 mod map_scanning;
 mod state;
+mod save_system;
 
 use crate::{
     config::Config,
     data_read::load_data_for_entities,
-    menu::MenuIndex,
     messagelog::Message,
     state::{RunState, State},
 };
@@ -65,36 +65,7 @@ fn main() -> BError {
         .with_simple_console(config.screensize_x, config.screensize_y, &config.font_file)
         .build()?;
 
-    let mut world = World::new();
-    let gs = if config.dev_mode {
-        // For dev purposes, we can skip the main menu
-        let map = start_new_game(&mut world, config.world_seed);
-        State {
-            world,
-            map,
-            runstate: RunState::InGame,
-            config,
-            message_log: vec![
-                Message::new("Welcome to Terra Incognita".to_string(), 0),
-                Message::new("This is an alpha build from March 2023".to_string(), 0),
-            ],
-            turn_counter: 0,
-            generated_maps: HashMap::new(),
-        }
-    } else {
-        State {
-            world,
-            map: Map::empty(),
-            runstate: RunState::MainMenu(MenuIndex(0)),
-            config,
-            message_log: vec![
-                Message::new("Welcome to Terra Incognita".to_string(), 0),
-                Message::new("This is an alpha build from March 2023".to_string(), 0),
-            ],
-            turn_counter: 0,
-            generated_maps: HashMap::new(),
-        }
-    };
+    let gs = if config.dev_mode { State::dev(config) } else { State::new(config) };
 
     main_loop(context, gs)
 }
@@ -107,11 +78,12 @@ pub fn start_new_game(world: &mut World, seed: u64) -> Map {
     map
 }
 
+/// Adds the life and decor to the map
 fn furnish_map(world: &mut World, map: &mut Map) {
     add_beings_to_rooms(world, map);
 }
 
-fn add_player_to_room(world: &mut World, player_start: Position) {
+pub fn add_player_to_room(world: &mut World, player_start: Position) {
     let player_builder = named_living_builder(&ENTITY_DB.lock().unwrap(), "Player", player_start);
     if let Some(mut pb) = player_builder {
         let p_entity = world.spawn(pb.build());
@@ -125,7 +97,6 @@ fn add_player_to_room(world: &mut World, player_start: Position) {
 }
 
 fn add_beings_to_rooms(world: &mut World, map: &mut Map) {
-
     let beings = vec!["Centipede", "Mole", "Star Nosed Mole"];
     for room in map.rooms.iter() {
         let monster_spawns_per_room = room.tiles.len() / 15;

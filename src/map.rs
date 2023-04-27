@@ -1,35 +1,40 @@
 /* Map.rs is the map generation code and data structures to hold information about the map
  */
-use crate::{actor::Position, item::Item, worldgen::WorldRoom, CharSprite, Config};
+use crate::{actor::Position, worldgen::WorldRoom, CharSprite, Config};
 use bracket_pathfinding::prelude::{Algorithm2D, BaseMap, DistanceAlg, SmallVec};
 use bracket_terminal::prelude::{BTerm, Point, PURPLE, WHITESMOKE};
 use hecs::Entity;
+use serde::{Serialize, Deserialize};
 
 pub const MAP_WIDTH: usize = 100;
 pub const MAP_HEIGHT: usize = 70;
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Map {
     pub tiles: Vec<WorldTile>,
     pub rooms: Vec<WorldRoom>,
     pub visible: Vec<bool>,
     pub discovered: Vec<bool>,
-    pub beings: Vec<Option<Entity>>,
     pub width: usize,
     pub height: usize,
     pub depth: usize,
+
+    #[serde(skip)]
+    pub beings: Vec<Option<Entity>>,
+    // #[serde(skip)]
+    // pub tile_entity: Vec<Option<Entity>>,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct WorldTile {
     pub sprite: CharSprite,
     pub is_blocking: bool,
     pub is_transparent: bool,
-    pub destructible: Destructible,
+    // pub destructible: Destructible,
     pub tile_type: TileType,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum TileType {
     Floor,
     Wall,
@@ -40,12 +45,12 @@ pub enum TileType {
     Unknown,
 }
 
-#[derive(Copy, Clone)]
-pub enum Destructible {
-    Unbreakable,
-    ByHand { health: usize, dropped_item: Item },
-    _ByPick { health: usize, dropped_item: Item },
-}
+// #[derive(Copy, Clone)]
+// pub enum Destructible {
+//     Unbreakable,
+//     ByHand { health: usize, dropped_item: Item },
+//     _ByPick { health: usize, dropped_item: Item },
+// }
 
 impl Map {
     /// Generates an empty map object, useful for setting up the game before it's started
@@ -103,7 +108,7 @@ impl WorldTile {
         Self {
             is_blocking: false,
             is_transparent: false,
-            destructible: Destructible::Unbreakable,
+            // destructible: Destructible::Unbreakable,
             sprite: CharSprite::new('?', PURPLE, WHITESMOKE),
             tile_type: TileType::Unknown,
         }
