@@ -52,15 +52,14 @@ pub fn try_move(
 
     if let Some(_) = map.tiles.get_mut(dest_idx) {
         view.dirty = true; // make it dirty so the vision is updated definitely
-        // if !tile.is_blocking {
-            let idx = pos.0.to_index(map.width);
-            *pos = dest_tile.clone();
-            map.beings[idx] = None;
-            map.beings[dest_idx] = Some(who);
-            return MoveResult::Acted("".to_string());
-        // } 
+                           // if !tile.is_blocking {
+        let idx = pos.0.to_index(map.width);
+        *pos = dest_tile.clone();
+        map.beings[idx] = None;
+        map.beings[dest_idx] = Some(who);
+        return MoveResult::Acted("".to_string());
+        // }
         // return MoveResult::InvalidMove("Tile is blocked".to_string());
-        
     }
     MoveResult::InvalidMove("No tile".to_string())
 }

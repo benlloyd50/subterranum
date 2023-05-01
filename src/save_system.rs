@@ -1,14 +1,22 @@
-use std::fs;
 use serde::{Deserialize, Serialize};
+use std::fs;
 
-use crate::{state::State, map::Map, config::Config, actor::{Position, Player}, add_player_to_room, furnish_map};
+use crate::{
+    actor::{Player, Position},
+    add_player_to_room,
+    config::Config,
+    furnish_map,
+    map::Map,
+    state::State,
+};
 
 #[derive(Deserialize, Serialize)]
 struct GameData {
-    maps: Vec<Map>,    
+    maps: Vec<Map>,
     depths: Vec<usize>,
-    last_depth: usize, 
+    last_depth: usize,
     last_pos: Position,
+    seed: u64,
 }
 
 impl GameData {
@@ -18,6 +26,7 @@ impl GameData {
             depths: Vec::new(),
             last_depth: 0,
             last_pos: Position::new(0, 0),
+            seed: 0,
         }
     }
 }
@@ -30,8 +39,12 @@ pub fn save_game(state: &mut State) {
     let data_json = serde_json::to_string(&data).unwrap();
     let path = format!("./saves/{save_name}.sav");
     match fs::write(&path, data_json) {
-        Ok(..) => { println!("Successful save to {}", path); },
-        Err(err) => { println!("Error while saving {}, can't recover yet", err); }
+        Ok(..) => {
+            println!("Successful save to {}", path);
+        }
+        Err(err) => {
+            println!("Error while saving {}, can't recover yet", err);
+        }
     }
 }
 
@@ -42,9 +55,10 @@ fn generate(state: &mut State) -> GameData {
 
     let mut data = GameData::new();
 
+    data.seed = state.config.world_seed;
     data.last_depth = state.map.depth;
 
-    // Collect all the maps the player has visited as it may have destroyed terrain so we couldn't regenerate it 
+    // Collect all the maps the player has visited as it may have destroyed terrain so we couldn't regenerate it
     for (depth, map) in state.generated_maps.iter() {
         data.depths.push(*depth);
         data.maps.push(map.clone());
@@ -71,18 +85,18 @@ pub fn start_load_game(config: Config) -> State {
     for (_, map) in load_state.generated_maps.iter_mut() {
         map.beings = vec![None; width * height];
     }
-    
+
     load_state.map = match load_state.generated_maps.get(&load_data.last_depth) {
         Some(map) => map.clone(),
         None => panic!("Map could not be found for the last recorded depth"),
     };
-    
+
     generate_content(&mut load_state, load_data.last_pos);
-    
+
     load_state
 }
 
-/// Loads data that is algorithmically creatable 
+/// Loads data that is algorithmically creatable
 fn generate_content(state: &mut State, player_pos: Position) {
     add_player_to_room(&mut state.world, player_pos);
     furnish_map(&mut state.world, &mut state.map);
@@ -103,4 +117,3 @@ fn load_state_from_save() -> GameData {
 
     game_data
 }
-

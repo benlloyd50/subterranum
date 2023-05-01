@@ -23,8 +23,8 @@ use combat::CombatStats;
 mod config;
 mod input;
 mod map_scanning;
-mod state;
 mod save_system;
+mod state;
 
 use crate::{
     config::Config,
@@ -65,7 +65,11 @@ fn main() -> BError {
         .with_simple_console(config.screensize_x, config.screensize_y, &config.font_file)
         .build()?;
 
-    let gs = if config.dev_mode { State::dev(config) } else { State::new(config) };
+    let gs = if config.dev_mode {
+        State::dev(config)
+    } else {
+        State::new(config)
+    };
 
     main_loop(context, gs)
 }

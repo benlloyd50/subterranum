@@ -53,7 +53,16 @@ fn draw_right_box(ctx: &mut BTerm, state: &State, screenheight: usize) {
 
 /// A fully customizable bar that splits between two characters with custom colors
 type ColoredChar = (char, RGBA, RGBA);
-fn draw_horizontal_split_bar(ctx: &mut BTerm, n: u32, max: u32, sx: i32, sy: i32, width: usize, filled: ColoredChar, empty: ColoredChar) {
+fn draw_horizontal_split_bar(
+    ctx: &mut BTerm,
+    n: u32,
+    max: u32,
+    sx: i32,
+    sy: i32,
+    width: usize,
+    filled: ColoredChar,
+    empty: ColoredChar,
+) {
     let percent = n as f32 / max as f32;
     let fill_width = (percent * width as f32) as usize;
     for x in 0..width as i32 {

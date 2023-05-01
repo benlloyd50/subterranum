@@ -14,7 +14,9 @@ use crate::{
     menu::{run_menu_systems, MenuIndex},
     messagelog::Message,
     monster::handle_monster_turns,
-    worldgen::move_to_new_floor, save_system::save_game, start_new_game,
+    save_system::save_game,
+    start_new_game,
+    worldgen::move_to_new_floor,
 };
 
 pub struct State {
@@ -76,6 +78,11 @@ impl State {
         }
     }
 
+    /// Resets state to be a blank slate for a new game
+    fn clean_up(&mut self) {
+        *self = State::new(self.config.clone());
+    }
+
     /// Systems that are ran every frame, regardless of turn progression
     fn run_continuous_systems(&mut self, ctx: &mut BTerm) {
         ctx.cls();
@@ -87,7 +94,6 @@ impl State {
         draw_gui(ctx, self);
     }
 
-    /// Systems that are ran at the end after the response systems run
     fn run_pre_response_systems(&mut self) {
         destroy_dead_beings(&mut self.world, &mut self.map);
     }
@@ -128,6 +134,7 @@ impl GameState for State {
             }
             RunState::SaveGame => {
                 save_game(self);
+                self.clean_up();
                 newstate = RunState::MainMenu(MenuIndex(0));
             }
         }

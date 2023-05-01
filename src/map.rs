@@ -4,7 +4,7 @@ use crate::{actor::Position, worldgen::WorldRoom, CharSprite, Config};
 use bracket_pathfinding::prelude::{Algorithm2D, BaseMap, DistanceAlg, SmallVec};
 use bracket_terminal::prelude::{BTerm, Point, PURPLE, WHITESMOKE};
 use hecs::Entity;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 pub const MAP_WIDTH: usize = 100;
 pub const MAP_HEIGHT: usize = 70;
