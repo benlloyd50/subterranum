@@ -1,5 +1,5 @@
 fullscreen = false 
-dev_mode = true 
+dev_mode = false 
 
 font_file = "RDE_graphics.png"
 # square font sizes for life
@@ -7,5 +7,8 @@ font_size = 8
 
 screensize_x = 120
 screensize_y = 80
+
+map_x = 100
+map_y = 70
 
 world_seed = 39218

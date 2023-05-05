@@ -39,9 +39,8 @@ pub fn generate_map(seed: u64, depth: usize) -> (Map, Position) {
     // create the map for the overworld
     let mut map = Map {
         tiles: vec![named_tile("Stone Wall"); width * height],
-        visible: vec![false; width * height],
-        discovered: vec![false; width * height],
         beings: vec![None; width * height],
+        tile_entity: vec![None; width * height],
         rooms: Vec::new(),
         width,
         height,

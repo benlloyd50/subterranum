@@ -13,16 +13,14 @@ pub const MAP_HEIGHT: usize = 70;
 pub struct Map {
     pub tiles: Vec<WorldTile>,
     pub rooms: Vec<WorldRoom>,
-    pub visible: Vec<bool>,
-    pub discovered: Vec<bool>,
     pub width: usize,
     pub height: usize,
     pub depth: usize,
 
     #[serde(skip)]
-    pub beings: Vec<Option<Entity>>,
-    // #[serde(skip)]
-    // pub tile_entity: Vec<Option<Entity>>,
+    pub beings: Vec<Option<Entity>>, // Whether or not a "being" entity is occupying a space
+    #[serde(skip)]
+    pub tile_entity: Vec<Option<Entity>>, // Whether or not a "being" entity is occupying a space
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -45,22 +43,14 @@ pub enum TileType {
     Unknown,
 }
 
-// #[derive(Copy, Clone)]
-// pub enum Destructible {
-//     Unbreakable,
-//     ByHand { health: usize, dropped_item: Item },
-//     _ByPick { health: usize, dropped_item: Item },
-// }
-
 impl Map {
     /// Generates an empty map object, useful for setting up the game before it's started
     pub fn empty() -> Self {
         Self {
             tiles: Vec::new(),
             rooms: Vec::new(),
-            visible: Vec::new(),
-            discovered: Vec::new(),
             beings: Vec::new(),
+            tile_entity: Vec::new(),
             width: 100,
             height: 70,
             depth: 0,
@@ -153,15 +143,15 @@ impl Algorithm2D for Map {
 }
 
 /// Renders the world from the player perspective
-pub fn render_map(ctx: &mut BTerm, map: &Map, config: &Config) {
+pub fn render_map(ctx: &mut BTerm, map: &Map, config: &Config, visible: &Vec<bool>, discovered: &Vec<bool>) {
     let mut x = 0;
     let mut y = 0;
     for tile in map.tiles.iter() {
         if config.dev_mode {
             ctx.set(x, y, tile.sprite.fg, tile.sprite.bg, tile.sprite.glyph);
-        } else if map.visible[map.xy_to_idx(x, y)] {
+        } else if visible[map.xy_to_idx(x, y)] {
             ctx.set(x, y, tile.sprite.fg, tile.sprite.bg, tile.sprite.glyph);
-        } else if map.discovered[map.xy_to_idx(x, y)] {
+        } else if discovered[map.xy_to_idx(x, y)] {
             ctx.set(
                 x,
                 y,

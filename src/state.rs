@@ -22,11 +22,16 @@ use crate::{
 pub struct State {
     pub world: World, // Holds all of our entities
     pub map: Map,     // Holds the tiles to the world
-    pub runstate: RunState,
     pub message_log: Vec<Message>,
+
+    pub generated_maps: HashMap<usize, Map>,
+
+    pub runstate: RunState,
     pub config: Config,
     pub turn_counter: usize,
-    pub generated_maps: HashMap<usize, Map>,
+
+    pub visible: Vec<bool>,   // Player's visibility
+    pub discovered: Vec<bool>,
 }
 
 #[derive(Clone)]
@@ -45,42 +50,46 @@ pub enum PlayerResponse {
 
 impl State {
     /// Empty start of state that starts in the menu
-    pub fn new(config: Config) -> Self {
+    pub fn new(config: &Config) -> Self {
         Self {
             world: World::new(),
             map: Map::empty(),
             runstate: RunState::MainMenu(MenuIndex(0)),
-            config,
+            config : config.clone(),
             message_log: vec![
                 Message::new("Welcome to Terra Incognita".to_string(), 0),
                 Message::new("This is an alpha build from April 2023".to_string(), 0),
             ],
             turn_counter: 0,
             generated_maps: HashMap::new(),
+            visible: vec![false; config.map_x * config.map_y],
+            discovered: vec![false; config.map_x * config.map_y],
         }
     }
 
     /// For dev purposes, we can skip the main menu
-    pub fn dev(config: Config) -> Self {
+    pub fn dev(config: &Config) -> Self {
         let mut world = World::new();
         let map = start_new_game(&mut world, config.world_seed);
         State {
             world,
             map,
             runstate: RunState::InGame,
-            config,
+            config : config.clone(),
             message_log: vec![
                 Message::new("Welcome to Terra Incognita".to_string(), 0),
                 Message::new("This is a dev build from April 2023".to_string(), 0),
             ],
             turn_counter: 0,
             generated_maps: HashMap::new(),
+            visible: vec![false; config.map_x * config.map_y],
+            discovered: vec![false; config.map_x * config.map_y],
         }
     }
 
     /// Resets state to be a blank slate for a new game
     fn clean_up(&mut self) {
-        *self = State::new(self.config.clone());
+        *self = State::new(&self.config);
     }
 
     /// Systems that are ran every frame, regardless of turn progression
@@ -88,7 +97,7 @@ impl State {
         ctx.cls();
         update_vision(self);
 
-        render_map(ctx, &self.map, &self.config);
+        render_map(ctx, &self.map, &self.config, &self.visible, &self.discovered);
         render_entities(ctx, self);
 
         draw_gui(ctx, self);

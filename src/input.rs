@@ -81,6 +81,7 @@ pub fn player_input(state: &mut State, ctx: &mut BTerm) -> PlayerResponse {
                 VirtualKeyCode::Comma => {
                     let depth = state.map.depth - 1;
                     if try_ascend(&state.map, pos, state.map.depth, 1) {
+                        view.dirty = true;
                         return PlayerResponse::StateChange(RunState::NextLevel(depth));
                     }
                     PlayerResponse::Waiting
@@ -88,6 +89,7 @@ pub fn player_input(state: &mut State, ctx: &mut BTerm) -> PlayerResponse {
                 VirtualKeyCode::Period => {
                     let depth = state.map.depth + 1;
                     if try_descend(&state.map, pos) {
+                        view.dirty = true;
                         return PlayerResponse::StateChange(RunState::NextLevel(depth));
                     }
                     PlayerResponse::Waiting

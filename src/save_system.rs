@@ -77,7 +77,7 @@ pub fn start_load_game(config: Config) -> State {
     let width = 100;
     let height = 70;
 
-    let mut load_state = State::new(config);
+    let mut load_state = State::new(&config);
     for (map, depth) in load_data.maps.iter().zip(load_data.depths.iter()) {
         load_state.generated_maps.insert(*depth, map.clone());
     }

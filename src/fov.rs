@@ -33,13 +33,13 @@ pub fn update_vision(state: &mut State) {
         viewshed.visible_tiles.retain(|p| state.map.within_bounds(*p));
 
         if let Some(_) = player {
-            for tile in state.map.visible.iter_mut() {
+            for tile in state.visible.iter_mut() {
                 *tile = false;
             }
             for point in viewshed.visible_tiles.iter() {
                 let idx = point.to_index(state.map.width);
-                state.map.discovered[idx] = true;
-                state.map.visible[idx] = true;
+                state.discovered[idx] = true;
+                state.visible[idx] = true;
             }
         }
     }

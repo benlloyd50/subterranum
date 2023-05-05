@@ -66,9 +66,9 @@ fn main() -> BError {
         .build()?;
 
     let gs = if config.dev_mode {
-        State::dev(config)
+        State::dev(&config)
     } else {
-        State::new(config)
+        State::new(&config)
     };
 
     main_loop(context, gs)
