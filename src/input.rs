@@ -69,12 +69,13 @@ pub fn player_input(state: &mut State, ctx: &mut BTerm) -> PlayerResponse {
                         if let Ok(mut defender) = state.world.query_one::<(&mut CombatStats, &Breed)>(target) {
                             if let Some(defender) = defender.get() {
                                 let damage_stmt =
-                                    attack((defender.0, defender.1.name.clone()), (attacker_stats, name.0.clone()));
+                                    attack((defender.0, &defender.1.name), (attacker_stats, &name.0));
                                 state.message_log.push(Message::new(damage_stmt, turn_sent));
                             }
                         } // Prevents stale enemies from being double despawned
                         PlayerResponse::TurnAdvance
                     }
+                    MoveResult::Mine(_) => todo!("Gonna implement mining soon"),
                 };
             }
             return match key {

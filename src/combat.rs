@@ -25,8 +25,8 @@ impl CombatStats {
 
 /// Attacks a defender by modifying health components
 pub fn attack(
-    (defender, d_name): (&mut CombatStats, impl ToString),
-    (attacker, a_name): (&CombatStats, impl ToString),
+    (defender, d_name): (&mut CombatStats, &impl ToString),
+    (attacker, a_name): (&CombatStats, &impl ToString),
 ) -> String {
     let damage_given = max(0, (attacker.strength - defender.defense).abs());
     let new_hp = defender.health.saturating_sub(damage_given as u32);

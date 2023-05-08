@@ -103,7 +103,7 @@ fn simple_ai(
 ) {
     let dist_to_player = DistanceAlg::Pythagoras.distance2d(player_pos.0, pos.0);
     if dist_to_player < 1.5 {
-        let damage_stmt = attack((player_stats, "Player"), (&attacker_stats, breed.name.clone()));
+        let damage_stmt = attack((player_stats, &"Player"), (&attacker_stats, &breed.name));
         message_log.push(Message::new(damage_stmt, turn_counter));
         return;
     }

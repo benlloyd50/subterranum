@@ -40,7 +40,7 @@ pub fn generate_map(seed: u64, depth: usize) -> (Map, Position) {
     let mut map = Map {
         tiles: vec![named_tile("Stone Wall"); width * height],
         beings: vec![None; width * height],
-        tile_entity: vec![None; width * height],
+        destructibles: vec![None; width * height],
         rooms: Vec::new(),
         width,
         height,

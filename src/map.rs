@@ -20,7 +20,13 @@ pub struct Map {
     #[serde(skip)]
     pub beings: Vec<Option<Entity>>, // Whether or not a "being" entity is occupying a space
     #[serde(skip)]
-    pub tile_entity: Vec<Option<Entity>>, // Whether or not a "being" entity is occupying a space
+    pub destructibles: Vec<Option<Destructible>>, // Whether or not a space contains a destructible thing
+}
+
+#[derive(Debug, Clone)]
+pub enum Destructible {
+    Tile,
+    Entity(Entity),
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -28,7 +34,6 @@ pub struct WorldTile {
     pub sprite: CharSprite,
     pub is_blocking: bool,
     pub is_transparent: bool,
-    // pub destructible: Destructible,
     pub tile_type: TileType,
 }
 
@@ -50,7 +55,7 @@ impl Map {
             tiles: Vec::new(),
             rooms: Vec::new(),
             beings: Vec::new(),
-            tile_entity: Vec::new(),
+            destructibles: Vec::new(),
             width: 100,
             height: 70,
             depth: 0,
