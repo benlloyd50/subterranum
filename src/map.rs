@@ -23,9 +23,9 @@ pub struct Map {
     pub destructibles: Vec<Option<Destructible>>, // Whether or not a space contains a destructible thing
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum Destructible {
-    Tile,
+    Tile { max_hp: usize, hp: usize },
     Entity(Entity),
 }
 

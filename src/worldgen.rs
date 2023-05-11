@@ -1,6 +1,6 @@
 use crate::actor::{Player, Position};
 use crate::data_read::named_tile;
-use crate::map::{Map, TileType, WorldTile, MAP_HEIGHT, MAP_WIDTH};
+use crate::map::{Destructible, Map, TileType, WorldTile, MAP_HEIGHT, MAP_WIDTH};
 use crate::map_scanning::{find_tile_from_type, pretty_walls};
 use crate::monster::Breed;
 use crate::prefab::{load_rex_room, xy_to_idx};
@@ -63,9 +63,21 @@ pub fn generate_map(seed: u64, depth: usize) -> (Map, Position) {
     place_tile_in_random_room(&mut map, &mut rng, named_tile("Down Stairs"));
     brush_spawn(&mut map, &mut rng);
 
+    // After all wall placing
+    cull_destructibles(&mut map);
     pretty_walls(&mut map);
 
     (map, player_spawn)
+}
+
+/// Iterates through all map tiles and sets destructible field for tiles and breakables
+pub fn cull_destructibles(map: &mut Map) {
+    for (idx, tile) in map.tiles.iter().enumerate() {
+        match tile.tile_type {
+            TileType::Wall => map.destructibles[idx] = Some(Destructible::Tile { max_hp: 3, hp: 3 }),
+            _ => continue,
+        }
+    }
 }
 
 /// Moves to another floor and cleans up old floor

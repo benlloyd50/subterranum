@@ -9,7 +9,7 @@ use crate::{
     config::Config,
     fov::update_vision,
     gui::draw_gui,
-    input::player_input,
+    input::{handle_player_action, player_input},
     map::{render_map, Map},
     menu::{run_menu_systems, MenuIndex},
     messagelog::Message,
@@ -30,7 +30,7 @@ pub struct State {
     pub config: Config,
     pub turn_counter: usize,
 
-    pub visible: Vec<bool>,   // Player's visibility
+    pub visible: Vec<bool>, // Player's visibility
     pub discovered: Vec<bool>,
 }
 
@@ -55,7 +55,7 @@ impl State {
             world: World::new(),
             map: Map::empty(),
             runstate: RunState::MainMenu(MenuIndex(0)),
-            config : config.clone(),
+            config: config.clone(),
             message_log: vec![
                 Message::new("Welcome to Terra Incognita".to_string(), 0),
                 Message::new("This is an alpha build from April 2023".to_string(), 0),
@@ -75,7 +75,7 @@ impl State {
             world,
             map,
             runstate: RunState::InGame,
-            config : config.clone(),
+            config: config.clone(),
             message_log: vec![
                 Message::new("Welcome to Terra Incognita".to_string(), 0),
                 Message::new("This is a dev build from April 2023".to_string(), 0),
@@ -120,8 +120,8 @@ impl GameState for State {
         match newstate {
             RunState::InGame => {
                 self.run_continuous_systems(ctx);
-
-                match player_input(self, ctx) {
+                let player_action = player_input(ctx);
+                match handle_player_action(self, player_action) {
                     PlayerResponse::StateChange(new_state) => {
                         ctx.cls();
                         newstate = new_state;

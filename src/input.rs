@@ -1,108 +1,92 @@
 use crate::{
-    actor::{try_ascend, try_descend, try_move, MoveResult, Name, Player, Position},
-    combat::{attack, CombatStats},
-    fov::ViewShed,
-    monster::Breed,
+    actor::{change_floor, mine, player_bump, MoveResult, Position, player_attack},
+    messagelog::Message,
     state::PlayerResponse,
-    Message, RunState, State,
+    RunState, State,
 };
-use std::cmp::max;
-
 use bracket_terminal::prelude::{BTerm, VirtualKeyCode};
-use hecs::With;
 
-/// Handles the player input based on the key pressed
+/// Handles the action sent by the player
 /// Returns the type of response needed based on what the player did
-pub fn player_input(state: &mut State, ctx: &mut BTerm) -> PlayerResponse {
+pub fn handle_player_action(state: &mut State, action: Action) -> PlayerResponse {
     let turn_sent = state.turn_counter;
-    if let Some((e, ((pos, attacker_stats, name), view))) = &mut state
-        .world
-        .query::<(With<(&mut Position, &CombatStats, &Name), &Player>, &mut ViewShed)>()
-        .iter()
-        .next()
-    {
-        // dest_tile represents the position of something the player will interact with
-        let mut dest_pos = pos.clone();
-        if let Some(key) = ctx.key {
-            // TODO: at some point I want to convert this into an action system where i can
-            // queue up many actions or use input
-            match key {
-                VirtualKeyCode::Up | VirtualKeyCode::K => {
-                    dest_pos.0.y = max(dest_pos.y() - 1, 0);
-                }
-                VirtualKeyCode::Down | VirtualKeyCode::J => {
-                    dest_pos.0.y += 1;
-                }
-                VirtualKeyCode::Left | VirtualKeyCode::H => {
-                    dest_pos.0.x = max(dest_pos.x() - 1, 0);
-                }
-                VirtualKeyCode::Right | VirtualKeyCode::L => {
-                    dest_pos.0.x += 1;
-                }
-                VirtualKeyCode::Y => {
-                    dest_pos.0.x = max(dest_pos.x() - 1, 0);
-                    dest_pos.0.y = max(dest_pos.y() - 1, 0);
-                }
-                VirtualKeyCode::U => {
-                    dest_pos.0.x += 1;
-                    dest_pos.0.y = max(dest_pos.y() - 1, 0);
-                }
-                VirtualKeyCode::N => {
-                    dest_pos.0.x = max(dest_pos.x() - 1, 0);
-                    dest_pos.0.y += 1;
-                }
-                VirtualKeyCode::M => {
-                    dest_pos.0.x += 1;
-                    dest_pos.0.y += 1;
-                }
-                _ => {}
+
+    match action {
+        Action::None => PlayerResponse::Waiting,
+        Action::Wait => PlayerResponse::TurnAdvance,
+        Action::Direction { delta } => match player_bump(&mut state.map, &mut state.world, delta.0) {
+            MoveResult::Moved(_) => PlayerResponse::TurnAdvance,
+            MoveResult::InvalidMove(msg) => {
+                state.message_log.push(Message::new(msg, turn_sent));
+                PlayerResponse::Waiting
             }
-            if !pos.0.eq(&dest_pos.0) {
-                // if the dest_pos is not the same one they were standing on
-                return match try_move(&mut state.map, &dest_pos, pos, view, *e) {
-                    MoveResult::Acted(_) => PlayerResponse::TurnAdvance,
-                    MoveResult::InvalidMove(reason) => {
-                        state.message_log.push(Message::new(reason, turn_sent));
-                        PlayerResponse::Waiting
-                    }
-                    MoveResult::Attack(target) => {
-                        if let Ok(mut defender) = state.world.query_one::<(&mut CombatStats, &Breed)>(target) {
-                            if let Some(defender) = defender.get() {
-                                let damage_stmt =
-                                    attack((defender.0, &defender.1.name), (attacker_stats, &name.0));
-                                state.message_log.push(Message::new(damage_stmt, turn_sent));
-                            }
-                        } // Prevents stale enemies from being double despawned
-                        PlayerResponse::TurnAdvance
-                    }
-                    MoveResult::Mine(_) => todo!("Gonna implement mining soon"),
-                };
-            }
-            return match key {
-                VirtualKeyCode::Comma => {
-                    let depth = state.map.depth - 1;
-                    if try_ascend(&state.map, pos, state.map.depth, 1) {
-                        view.dirty = true;
-                        return PlayerResponse::StateChange(RunState::NextLevel(depth));
-                    }
-                    PlayerResponse::Waiting
-                }
-                VirtualKeyCode::Period => {
-                    let depth = state.map.depth + 1;
-                    if try_descend(&state.map, pos) {
-                        view.dirty = true;
-                        return PlayerResponse::StateChange(RunState::NextLevel(depth));
-                    }
-                    PlayerResponse::Waiting
-                }
-                VirtualKeyCode::Space => {
-                    // A waiting action
+            MoveResult::Attack(target) => {
+                player_attack(&mut state.world, &mut state.message_log, target, turn_sent);
+                PlayerResponse::TurnAdvance
+            },
+            MoveResult::Mine(destructible) => {
+                if mine(&mut state.map, &mut state.world, destructible, delta.0) {
                     PlayerResponse::TurnAdvance
+                } else {
+                    PlayerResponse::Waiting
                 }
-                VirtualKeyCode::Escape => PlayerResponse::StateChange(RunState::SaveGame),
-                _ => PlayerResponse::Waiting,
-            };
-        }
+            }
+        },
+        Action::Ascend => match change_floor(&mut state.world, &mut state.map, -1) {
+            true => PlayerResponse::StateChange(RunState::NextLevel(state.map.depth - 1)),
+            false => PlayerResponse::Waiting,
+        },
+        Action::Descend => match change_floor(&mut state.world, &mut state.map, 1) {
+            true => PlayerResponse::StateChange(RunState::NextLevel(state.map.depth + 1)),
+            false => PlayerResponse::Waiting,
+        },
+        Action::SaveGame => PlayerResponse::StateChange(RunState::SaveGame),
     }
-    PlayerResponse::Waiting
+}
+
+pub enum Action {
+    None,
+    Direction { delta: Position },
+    Descend,
+    Ascend,
+    Wait,
+    SaveGame, // this will probably change to a menu
+}
+
+pub fn player_input(ctx: &mut BTerm) -> Action {
+    if let Some(key) = ctx.key {
+        match key {
+            VirtualKeyCode::Up | VirtualKeyCode::K => Action::Direction {
+                delta: Position::new(0, -1),
+            },
+            VirtualKeyCode::Down | VirtualKeyCode::J => Action::Direction {
+                delta: Position::new(0, 1),
+            },
+            VirtualKeyCode::Left | VirtualKeyCode::H => Action::Direction {
+                delta: Position::new(-1, 0),
+            },
+            VirtualKeyCode::Right | VirtualKeyCode::L => Action::Direction {
+                delta: Position::new(1, 0),
+            },
+            VirtualKeyCode::Y => Action::Direction {
+                delta: Position::new(-1, -1),
+            },
+            VirtualKeyCode::U => Action::Direction {
+                delta: Position::new(1, -1),
+            },
+            VirtualKeyCode::N => Action::Direction {
+                delta: Position::new(-1, 1),
+            },
+            VirtualKeyCode::M => Action::Direction {
+                delta: Position::new(1, 1),
+            },
+            VirtualKeyCode::Comma => Action::Descend,
+            VirtualKeyCode::Period => Action::Ascend,
+            VirtualKeyCode::Space => Action::Wait,
+            VirtualKeyCode::Escape => Action::SaveGame,
+            _ => Action::None,
+        }
+    } else {
+        Action::None
+    }
 }

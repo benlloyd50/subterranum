@@ -5,7 +5,7 @@ use std::cmp::max;
 use hecs::{Entity, With};
 
 use crate::{
-    actor::{try_move, MoveResult, Player, Position},
+    actor::{bump_tile, MoveResult, Player, Position},
     combat::{attack, CombatStats},
     fov::ViewShed,
     map::Map,
@@ -113,8 +113,8 @@ fn simple_ai(
         let path = a_star_search(tile_idx, player_pos.0.to_index(map.width), map);
         if path.success && path.steps.len() > 1 {
             let next_pos = map.idx_to_pos(path.steps[1]);
-            match try_move(map, &next_pos, pos, view, me) {
-                MoveResult::Acted(_) => return,
+            match bump_tile(map, &next_pos, pos, view, me) {
+                MoveResult::Moved(_) => return,
                 _ => {}
             }
         }
@@ -135,6 +135,6 @@ fn simple_ai(
             }
             _ => {}
         }
-        try_move(map, &new_pos, pos, view, me);
+        bump_tile(map, &new_pos, pos, view, me);
     }
 }

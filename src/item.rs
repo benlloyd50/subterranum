@@ -1,2 +1,4 @@
-#[derive(Copy, Clone)]
-pub struct Item {}
+#[derive(Clone)]
+pub struct Item {
+    name: String,
+}
