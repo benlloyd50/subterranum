@@ -8,6 +8,7 @@ use crate::{
     furnish_map,
     map::Map,
     state::State,
+    worldgen::cull_destructibles,
 };
 
 #[derive(Deserialize, Serialize)]
@@ -84,6 +85,7 @@ pub fn start_load_game(config: Config) -> State {
 
     for (_, map) in load_state.generated_maps.iter_mut() {
         map.beings = vec![None; width * height];
+        map.destructibles = vec![None; width * height];
     }
 
     load_state.map = match load_state.generated_maps.get(&load_data.last_depth) {
@@ -100,6 +102,7 @@ pub fn start_load_game(config: Config) -> State {
 fn generate_content(state: &mut State, player_pos: Position) {
     add_player_to_room(&mut state.world, player_pos);
     furnish_map(&mut state.world, &mut state.map);
+    cull_destructibles(&mut state.map);
 }
 
 /// Attempts to loads static data we can't regenerate

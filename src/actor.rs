@@ -7,12 +7,13 @@ use serde::{Deserialize, Serialize};
 use std::cmp;
 
 use crate::{
-    combat::{CombatStats, attack},
+    combat::{attack, CombatStats},
     data_read::named_tile,
     fov::ViewShed,
     map::{Destructible, Map, TileType},
+    messagelog::Message,
     monster::Breed,
-    BTerm, State, messagelog::Message,
+    BTerm, State,
 };
 
 pub enum MoveResult {
@@ -102,9 +103,9 @@ pub fn change_floor(world: &mut World, map: &mut Map, delta: i32) -> bool {
 }
 
 pub fn player_attack(world: &mut World, message_log: &mut Vec<Message>, target: Entity, turn_sent: usize) {
-    if let Some((_, (attacker_stats, _, _))) = world.query::<(&mut CombatStats, &Breed, &Player)>().iter().next() {
+    if let Some((_, (attacker_stats, _))) = world.query::<(&mut CombatStats, &Player)>().iter().next() {
         if let Ok(mut defender) = world.query_one::<(&mut CombatStats, &Breed)>(target) {
-            if let Some(mut defender) = defender.get() {
+            if let Some(defender) = defender.get() {
                 let damage_stmt = attack((defender.0, &defender.1.name), (attacker_stats, &"Player"));
                 message_log.push(Message::new(damage_stmt, turn_sent));
             }
@@ -132,11 +133,9 @@ pub fn mine(map: &mut Map, world: &mut World, destructible: Destructible, delta:
                     map.destructibles[dest_idx] = None;
                     return true;
                 }
-                // println!("Did damage to tile");
                 map.destructibles[dest_idx] = Some(Destructible::Tile { max_hp, hp });
             }
             Destructible::Entity(_e) => {
-                println!("Did damage to entity");
                 // if let Some(e) = world.query_one::<()>()
             }
         }

@@ -40,6 +40,7 @@ pub fn generate_map(seed: u64, depth: usize) -> (Map, Position) {
     let mut map = Map {
         tiles: vec![named_tile("Stone Wall"); width * height],
         beings: vec![None; width * height],
+        discovered: vec![false; width * height],
         destructibles: vec![None; width * height],
         rooms: Vec::new(),
         width,
@@ -80,13 +81,15 @@ pub fn cull_destructibles(map: &mut Map) {
     }
 }
 
-/// Moves to another floor and cleans up old floor
+/// Setups the new floor and cleans up the old floor
 pub fn move_to_new_floor(state: &mut State, new_depth: usize) {
     // clean up old monsters
     despawn_beings(&mut state.world, &mut state.map);
 
     // Update map that player was previously on
     state.generated_maps.insert(state.map.depth, state.map.clone());
+
+    // state.discovered = vec![false; state.discovered.len()];
 
     let (new_map, new_player_pos) = match state.generated_maps.get(&new_depth) {
         None => generate_map(state.config.world_seed, new_depth),
@@ -106,6 +109,7 @@ pub fn move_to_new_floor(state: &mut State, new_depth: usize) {
     // furnish the new ones, no not with alcohol. this means monsters respawn so stair spamming has consequences
     furnish_map(&mut state.world, &mut state.map);
 
+    cull_destructibles(&mut state.map);
     pretty_walls(&mut state.map);
 }
 

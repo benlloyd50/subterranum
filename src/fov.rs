@@ -38,7 +38,7 @@ pub fn update_vision(state: &mut State) {
             }
             for point in viewshed.visible_tiles.iter() {
                 let idx = point.to_index(state.map.width);
-                state.discovered[idx] = true;
+                state.map.discovered[idx] = true;
                 state.visible[idx] = true;
             }
         }

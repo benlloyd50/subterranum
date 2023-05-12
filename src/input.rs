@@ -1,5 +1,5 @@
 use crate::{
-    actor::{change_floor, mine, player_bump, MoveResult, Position, player_attack},
+    actor::{change_floor, mine, player_attack, player_bump, MoveResult, Position},
     messagelog::Message,
     state::PlayerResponse,
     RunState, State,
@@ -23,7 +23,7 @@ pub fn handle_player_action(state: &mut State, action: Action) -> PlayerResponse
             MoveResult::Attack(target) => {
                 player_attack(&mut state.world, &mut state.message_log, target, turn_sent);
                 PlayerResponse::TurnAdvance
-            },
+            }
             MoveResult::Mine(destructible) => {
                 if mine(&mut state.map, &mut state.world, destructible, delta.0) {
                     PlayerResponse::TurnAdvance
@@ -80,8 +80,8 @@ pub fn player_input(ctx: &mut BTerm) -> Action {
             VirtualKeyCode::M => Action::Direction {
                 delta: Position::new(1, 1),
             },
-            VirtualKeyCode::Comma => Action::Descend,
-            VirtualKeyCode::Period => Action::Ascend,
+            VirtualKeyCode::Comma => Action::Ascend,
+            VirtualKeyCode::Period => Action::Descend,
             VirtualKeyCode::Space => Action::Wait,
             VirtualKeyCode::Escape => Action::SaveGame,
             _ => Action::None,

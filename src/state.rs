@@ -31,7 +31,6 @@ pub struct State {
     pub turn_counter: usize,
 
     pub visible: Vec<bool>, // Player's visibility
-    pub discovered: Vec<bool>,
 }
 
 #[derive(Clone)]
@@ -63,7 +62,6 @@ impl State {
             turn_counter: 0,
             generated_maps: HashMap::new(),
             visible: vec![false; config.map_x * config.map_y],
-            discovered: vec![false; config.map_x * config.map_y],
         }
     }
 
@@ -83,7 +81,6 @@ impl State {
             turn_counter: 0,
             generated_maps: HashMap::new(),
             visible: vec![false; config.map_x * config.map_y],
-            discovered: vec![false; config.map_x * config.map_y],
         }
     }
 
@@ -97,7 +94,7 @@ impl State {
         ctx.cls();
         update_vision(self);
 
-        render_map(ctx, &self.map, &self.config, &self.visible, &self.discovered);
+        render_map(ctx, &self.map, &self.config, &self.visible, &self.map.discovered);
         render_entities(ctx, self);
 
         draw_gui(ctx, self);

@@ -16,6 +16,7 @@ pub struct Map {
     pub width: usize,
     pub height: usize,
     pub depth: usize,
+    pub discovered: Vec<bool>, // Tiles that the player has previously seen
 
     #[serde(skip)]
     pub beings: Vec<Option<Entity>>, // Whether or not a "being" entity is occupying a space
@@ -54,6 +55,7 @@ impl Map {
         Self {
             tiles: Vec::new(),
             rooms: Vec::new(),
+            discovered: Vec::new(),
             beings: Vec::new(),
             destructibles: Vec::new(),
             width: 100,
