@@ -8,8 +8,8 @@ Trello
 Major.Minor.Patch
 
 - Major represents a large change in how the game plays. These will only be incremented where the game feels foreign to the last Major release.
-- Minor represents a collection of small changes that were deemed enough to call a release.
-- Patch represents a small change that is significant on it's own but not even for a full minor
+- Minor represents a collection of small changes that were deemed enough to call a release, mainly bugs and small content.
+- Patch represents a small change that is significant on it's own but not enough for a full minor
 
 ## Pre 1.0
 
